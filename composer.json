@@ -1,0 +1,6 @@
+{
+    "require": {
+        "phpfastcache/phpfastcache": "^9.1",
+        "catfan/medoo": "^2.1"
+    }
+}
