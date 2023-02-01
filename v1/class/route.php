@@ -10,6 +10,7 @@
 		{
 			global $_CONFIG;
 			global $_JSON_PRINT;
+         global $_TOKEN;
 
 			$callback = $path_to_include;
 
@@ -59,6 +60,13 @@
 				{
 				 	return;
 			  	} 
+			}
+
+			// Auth token
+			if ($_PUBLIC_KEY)
+			{
+				$_TOKEN->setKey($_PUBLIC_KEY);
+				$_TOKEN->auth();
 			}
 
 			// Callback function

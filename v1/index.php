@@ -1,10 +1,7 @@
 <?php
    // session
       session_start();
-      if (empty($_SESSION['token']))
-      {
-         usleep(100000);
-      }
+      if (empty($_SESSION['token'])) { $_SESSION['token'] = ''; usleep(100000); }
 
    // Debug
 		ini_set('display_errors', E_ALL);
@@ -34,12 +31,6 @@
       $_TOKEN        = new token();
       $_ROUTE        = new route();
 
-   // Set Token
-   if (empty($_SESSION['token']))
-   {
-      $_ROUTE->get('/v1/auth/$_PUBLIC_KEY',           $_CONFIG['ROOT'] . 'v1/auth.php');
-   }
-
    // Routing selon l'HOST
       try
       {
@@ -50,8 +41,8 @@
             {
                $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/dexocard/';
 
-               $_ROUTE->get('/v1/tcgo/code',                               $_PRODUCT . 'tcgo/code');
-               $_ROUTE->get('/v1/tcgo/code/$_NB',                          $_PRODUCT . 'tcgo/code');
+               $_ROUTE->get('/v1/$_PUBLIC_KEY/tcgo/code',                               $_PRODUCT . 'tcgo/code');
+               $_ROUTE->get('/v1/$_PUBLIC_KEY/tcgo/code/$_NB',                          $_PRODUCT . 'tcgo/code');
                
                break;
             }
