@@ -40,7 +40,8 @@
             {
                $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/dexocard/';
 
-               $_ROUTE->get('/v1/tcgo/code', $_PRODUCT . 'tcgo/code');
+               $_ROUTE->get('/v1/tcgo/code',                               $_PRODUCT . 'tcgo/code');
+               $_ROUTE->get('/v1/tcgo/code/$_NB',                          $_PRODUCT . 'tcgo/code');
                
                break;
             }
