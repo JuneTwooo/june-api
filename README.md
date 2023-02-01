@@ -1,7 +1,8 @@
 API créer pour différents services
 
-# dexocard
-   - 1
-      - 2
+# DexoCard
+   - TCGO
+      - /v1/tcgo/code/
+      - /v1/tcgo/code/$nb
 
 # autre
