@@ -1,13 +1,4 @@
 <?php
-   usleep(100);
-
-   // JSON Return
-      $_JSON_RETURN = array
-      (
-         'success'   => 0,
-         'raison'    => array()
-      );
-
    // Debug
 		ini_set('display_errors', E_ALL);
 		error_reporting(1);
@@ -30,38 +21,31 @@
 	// CONFIG & INIT
       require_once(__DIR__ . '/../config.php');
       require_once($_CONFIG['ROOT'] . 'init.php');
+      require_once($_CONFIG['ROOT'] . 'v1/class/route.php');
+      require_once($_CONFIG['ROOT'] . 'v1/class/print_json.php');
       require_once($_CONFIG['ROOT'] . 'v1/error-handler.php');
 
-   // Routing
-   //$router = new Router($_GET['url']); 
-      //require_once($_CONFIG['ROOT'] . 'functions.global.php');
+   // JSON Print
+      $_ROUTE        = new route();
+      $_JSON_PRINT   = new print_JSON();
 
-      /*
-   // API
-      $_API_ENDPOINT_FOLDER   = $_GET['module'];
-      $_API_ENDPOINT          = $_GET['api'];
+   // Routing selon l'HOST
+      try
+      {
+         $_PRODUCT   = NULL;
+         
+         switch ($_SERVER['HTTP_HOST'])
+         {
+            case 'api.dexocard.com' : 
+            {
+               $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/dexocard/';
 
-   // JSON Return
-      $_JSON_RETURN = array
-      (
-         'success'   => 0,
-         'raison'    => 'unknow'
-      );
-
-   if (!file_exists($_CONFIG['API']['ROOT_FOLDER'] . $_API_ENDPOINT_FOLDER . '/' . $_API_ENDPOINT . '.php'))
-   {
-      $_JSON_RETURN['success']   = 0;
-      $_JSON_RETURN['raison']    = 'no_endpoint_found';
-   }
-   else
-   {
-      include $_CONFIG['API']['ROOT_FOLDER'] . $_API_ENDPOINT_FOLDER . '/' . $_API_ENDPOINT . '.php';
-   }
-
-   if ($_JSON_RETURN['success'])
-   {
-      unset($_JSON_RETURN['raison']);
-   }
-
-   echo json_encode($_JSON_RETURN);*/
+               $_ROUTE->get('/v1/tcgo/code', $_PRODUCT . 'tcgo/code');
+               
+               break;
+            }
+         }
+      }
+      catch (Exception $e) { exceptions_error_handler(0, $e->getMessage(), $e->getFile(), $e->getLine()); }
+      catch (Throwable $e) { exceptions_error_handler(0, $e->getMessage(), $e->getFile(), $e->getLine()); }
 ?>

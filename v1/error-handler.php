@@ -1,33 +1,42 @@
 <?php
    // Errors handler
-   set_error_handler(function(int $number, string $message, string $errfile, int $errline)
+   set_error_handler('exceptions_error_handler');   
+      
+   function exceptions_error_handler(int $number, string $message, string $errfile, int $errline)
    {
-      global $_JSON_RETURN;
       global $_CONFIG;
       
-      if (empty($_CONFIG['debug']))
+      if (!$_CONFIG['DEBUG'])
       {
-         array_push($_JSON_RETURN['raison'], "internal error");
+         // Mode débug inactif
+         echo json_encode
+         (
+            array
+            (
+               "success" => 0, 
+               "raison" => "internal error"
+            )
+         );
       }
       else
       {
-         array_push($_JSON_RETURN['raison'], array
+         // Mode débuf actif
+         echo json_encode
          (
-            'message'   => $message,
-            'file'      => $errfile,
-            'line'      => $errline
-         ));
+            array
+            (
+               "success" => 0, 
+               "raison" => 
+               array
+               (
+                  'message'   => $message,
+                  'file'      => $errfile,
+                  'line'      => $errline
+               )
+            )
+         );
       }
-      
-      echo_json(true);
-   });
 
-   function echo_json($exit = false)
-   {
-      global $_JSON_RETURN;
-
-      echo json_encode($_JSON_RETURN);
-
-      if ($exit) { exit(); }
+      exit();
    }
 ?>
