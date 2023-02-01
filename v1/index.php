@@ -24,19 +24,26 @@
 	// CONFIG & INIT
       require_once(__DIR__ . '/../config.php');
       require_once($_CONFIG['ROOT'] . 'init.php');
-      require_once($_CONFIG['ROOT'] . 'v1/class/route.php');
       require_once($_CONFIG['ROOT'] . 'v1/class/print_json.php');
+      require_once($_CONFIG['ROOT'] . 'v1/class/token.php');
+      require_once($_CONFIG['ROOT'] . 'v1/class/route.php');
       require_once($_CONFIG['ROOT'] . 'v1/error-handler.php');
 
    // JSON Print
-      $_ROUTE        = new route();
       $_JSON_PRINT   = new print_JSON();
+      $_TOKEN        = new token();
+      $_ROUTE        = new route();
+
+   // Set Token
+   if (empty($_SESSION['token']))
+   {
+      $_ROUTE->get('/v1/auth/$_PUBLIC_KEY',           $_CONFIG['ROOT'] . 'v1/auth.php');
+   }
 
    // Routing selon l'HOST
       try
       {
          $_PRODUCT   = NULL;
-         
          switch ($_SERVER['HTTP_HOST'])
          {
             case 'api.dexocard.com' : 
