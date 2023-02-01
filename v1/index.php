@@ -1,4 +1,11 @@
 <?php
+   // session
+      session_start();
+      if (empty($_SESSION['token']))
+      {
+         usleep(100000);
+      }
+
    // Debug
 		ini_set('display_errors', E_ALL);
 		error_reporting(1);
@@ -10,12 +17,8 @@
    // HTTP Origins
       switch (empty($_SERVER['HTTP_ORIGIN']) ? 'no_origin' : $_SERVER['HTTP_ORIGIN'])
       {
-         case 'https://sfggrading.com':     { break; }
-         case 'https://www.sfggrading.com': { break; }
-         case 'no_origin':
-         {
-            break;
-         }
+         case 'https://www.dexocard.com': { break; }
+         case 'no_origin':                { break; }
       }
 
 	// CONFIG & INIT
