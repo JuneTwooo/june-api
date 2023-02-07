@@ -13,6 +13,7 @@
          global $_TOKEN;
          global $_MYSQL;
          global $_LOG;
+			global $_PUBLIC_KEY;
 
 			$callback = $path_to_include;
 

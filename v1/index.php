@@ -1,4 +1,6 @@
 <?php
+   $_BENCH_START_TIME = microtime(true);
+
    // session
       session_start();
       if (empty($_SESSION['token'])) { $_SESSION['token'] = ''; usleep(100000); }
@@ -36,6 +38,8 @@
       $_MYSQL        = new MySQL();
       
    // Routing selon l'HOST
+      $_PUBLIC_KEY   = (empty($_SERVER['HTTP_AUTHORIZATION']) ? NULL : $_SERVER['HTTP_AUTHORIZATION']);
+
       try
       {
          $_PRODUCT   = NULL;
@@ -45,8 +49,12 @@
             {
                $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/dexocard/';
 
-               $_ROUTE->get('/v1/$_PUBLIC_KEY/tcgo/code',                               $_PRODUCT . 'tcgo/code');
-               $_ROUTE->get('/v1/$_PUBLIC_KEY/tcgo/code/$_NB',                          $_PRODUCT . 'tcgo/code');
+               // CARTES
+
+               // TCGO
+                  $_ROUTE->get('/v1/tcgo/code',                            $_PRODUCT . 'tcgo/code');
+
+               
                
                break;
             }

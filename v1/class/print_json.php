@@ -42,6 +42,9 @@
       public function print()
       {
          global $_LOG;
+         global $_BENCH_START_TIME;
+
+         $_BENCH_END_TIME = microtime(TRUE);
 
          $callBack = json_encode(
             array(
@@ -49,11 +52,11 @@
                'raison'    => $this->_fail_raison,
                'response'  => $this->_response,
                'timestamp' => time(),
+               'bench'     => ($_BENCH_END_TIME - $_BENCH_START_TIME)
             )
          );
 
          $_LOG->write(1, 0, 'print_JSON->print', serialize($callBack));
-
 
          echo $callBack;
          exit();

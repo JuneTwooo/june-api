@@ -3,7 +3,7 @@
       $_TOKEN->checkAccess('dexocard', 'get_tcgo_code');
 
    // Nombre de code à afficher
-      $_NB     = (empty($_NB) ? 1 : intval($_NB));
+      $_NB     = (empty($_GET['length']) ? 1 : intval($_GET['length']));
 
    // Nombre de code maximum à afficher
       if ($_NB > 10)
