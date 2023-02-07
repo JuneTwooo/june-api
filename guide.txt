@@ -1,1 +1,0 @@
-https://api.*.*/v1/[SERVICE]/
