@@ -19,18 +19,22 @@
       }
 
 	// CONFIG & INIT
-      require_once(__DIR__ . '/../config.php');
-      require_once($_CONFIG['ROOT'] . 'init.php');
+      require_once(__DIR__ . '/config.php');
+      require_once($_CONFIG['ROOT'] . 'v1/init.php');
       require_once($_CONFIG['ROOT'] . 'v1/class/print_json.php');
       require_once($_CONFIG['ROOT'] . 'v1/class/token.php');
       require_once($_CONFIG['ROOT'] . 'v1/class/route.php');
+      require_once($_CONFIG['ROOT'] . 'v1/class/mysql.php');
+      require_once($_CONFIG['ROOT'] . 'v1/class/log.php');
       require_once($_CONFIG['ROOT'] . 'v1/error-handler.php');
 
    // JSON Print
       $_JSON_PRINT   = new print_JSON();
       $_TOKEN        = new token();
       $_ROUTE        = new route();
-
+      $_LOG          = new logFile();
+      $_MYSQL        = new MySQL();
+      
    // Routing selon l'HOST
       try
       {
@@ -50,4 +54,8 @@
       }
       catch (Exception $e) { exceptions_error_handler(0, $e->getMessage(), $e->getFile(), $e->getLine()); }
       catch (Throwable $e) { exceptions_error_handler(0, $e->getMessage(), $e->getFile(), $e->getLine()); }
+
+   // 404
+      $_JSON_PRINT->fail("unknow endpoint");
+      $_JSON_PRINT->print();
 ?>

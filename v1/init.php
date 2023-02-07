@@ -8,6 +8,5 @@
 
 	// INCLUDES / REQUIRE
 		require __DIR__ . '/vendor/autoload.php';
-		require __DIR__ . '/mysql.php';
 		require __DIR__ . '/cache.php';
 ?>

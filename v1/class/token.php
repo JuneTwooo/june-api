@@ -5,6 +5,7 @@
       public $_access;
 
       public function setKey($key)  { $this->_publicKey  = $key; }
+      public function getKey()      { return $this->_publicKey; }
 
       public function checkAccess($product, $key)
       {
@@ -12,8 +13,9 @@
 
          if (!$this->_access[$product][$key])
          {
-            $_JSON_PRINT->fail("Access denied for this token"); 
-            $_JSON_PRINT->print(); 
+            $_JSON_PRINT->fail("access denied for this token"); 
+            $_JSON_PRINT->print();
+            exit();
          }
 
          return true;
@@ -26,8 +28,9 @@
          // aucune clé définie
          if (!$this->_publicKey)
          {
-            $_JSON_PRINT->fail("Public key is required");
+            $_JSON_PRINT->fail("public key is required");
             $_JSON_PRINT->print();
+            exit();
          }
 
          switch ($this->_publicKey)
@@ -36,19 +39,21 @@
             {
                $this->_access['dexocard']['get_tcgo_code'] = true;
 
+               return true;
                break;
             }
 
             default:
-            {
-               usleep(1000000);
-               $_JSON_PRINT->fail("Wrong public key");
-               $_JSON_PRINT->print();
+            {               
+               $_JSON_PRINT->fail("wrong public key");
 
+               usleep(1000000);
+               $_JSON_PRINT->print();
+               
+               return false;
                break;
             }
          }
-         $_SESSION['token'] = $this->_publicKey;
       }
 
       function __construct()

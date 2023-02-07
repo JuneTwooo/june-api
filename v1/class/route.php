@@ -11,6 +11,8 @@
 			global $_CONFIG;
 			global $_JSON_PRINT;
          global $_TOKEN;
+         global $_MYSQL;
+         global $_LOG;
 
 			$callback = $path_to_include;
 
@@ -30,7 +32,8 @@
 			array_shift($route_parts);
 			array_shift($request_url_parts);
 
-			if ($route_parts[0] == '' && count($request_url_parts) == 0)
+			
+			/*if ($route_parts[0] == '' && count($request_url_parts) == 0)
 			{
 				// Callback function
 			  	if (is_callable($callback) )
@@ -42,7 +45,7 @@
 					include_once $path_to_include;
 				}
 				exit();
-			}
+			}*/
 
 			if (count($route_parts) != count($request_url_parts)) { return; } 
 
@@ -68,6 +71,7 @@
 				$_TOKEN->setKey($_PUBLIC_KEY);
 				$_TOKEN->auth();
 			}
+			$_LOG->write(1, 1, 'route', implode('/', $request_url_parts));
 
 			// Callback function
 			if (is_callable($callback))
@@ -78,6 +82,7 @@
 			{
 				include $path_to_include;
 			}
+
 			exit();
 		}
 	}

@@ -20,11 +20,11 @@
       }
 
    // MySQL Connexion
-      $_SQL    = SQL_Connect(array('dexocard_api'));
+      $_SQL    = $_MYSQL->connect(array("api"));
 
-   // Affiche les codes
+      // Affiche les codes
       $response = array();
-      foreach ($_SQL['dexocard_api']->query
+      foreach ($_SQL['api']->query
       (
          '
             SELECT 
@@ -56,7 +56,7 @@
       }
 
    // print
-   $_JSON_PRINT->success();
-   $_JSON_PRINT->response($response);
-   $_JSON_PRINT->print();
+      $_JSON_PRINT->success();
+      $_JSON_PRINT->response($response);
+      $_JSON_PRINT->print();
 ?>

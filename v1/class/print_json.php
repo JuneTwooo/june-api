@@ -13,24 +13,37 @@
 
       public function success()
       {
+         global $_LOG;
          $this->_state = 1;
+
+         $_LOG->write(2, 1, 'print_JSON->success', "");
       }
 
       public function fail($raison = NULL)
       {
+         global $_LOG;
+
          $this->_state = 0;
 
          if (!empty($raison)) { $this->_fail_raison = $raison; }
+
+         $_LOG->write(2, 0, 'print_JSON->fail', $raison);
       }
 
       public function response($obj)
       {
+         global $_LOG;
+
+         $_LOG->write(1, 0, 'print_JSON->reponse', serialize($obj));
+
          $this->_response = $obj;
       }
 
       public function print()
       {
-         echo json_encode(
+         global $_LOG;
+
+         $callBack = json_encode(
             array(
                'success'   => $this->_state,
                'raison'    => $this->_fail_raison,
@@ -38,6 +51,11 @@
                'timestamp' => time(),
             )
          );
+
+         $_LOG->write(1, 0, 'print_JSON->print', serialize($callBack));
+
+
+         echo $callBack;
          exit();
       }
    }

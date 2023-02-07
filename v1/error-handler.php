@@ -14,12 +14,7 @@
       else
       {
          // Mode débuf actif
-         $_JSON_PRINT->fail(array
-         (
-            'message'   => $message,
-            'file'      => $errfile,
-            'line'      => $errline
-         ));
+         $_JSON_PRINT->fail("message: $message; file      => $errfile; line      => $errline");
       }
 
       $_JSON_PRINT->print();
