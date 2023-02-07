@@ -10,12 +10,16 @@
       public function checkAccess($product, $key)
       {
          global $_JSON_PRINT;
+         global $_METHOD;
 
-         if (!$this->_access[$product][$key])
+         // search response
+         $access_response = (empty($this->_access[$product]) ? NULL : $this->_access[$product]);
+         foreach (explode('/', $key) as $route) { $access_response = (empty($access_response[$route]) ? NULL : $access_response[$route]); }
+
+         if (empty($access_response[$_METHOD]))
          {
-            $_JSON_PRINT->fail("access denied for this token"); 
+            $_JSON_PRINT->fail("access denied"); 
             $_JSON_PRINT->print();
-            exit();
          }
 
          return true;
@@ -24,36 +28,37 @@
       public function auth()
       {
          global $_JSON_PRINT;
+         global $_MYSQL;
+         global $_PHPFASTCACHE;
+         global $_DATA_DEBUG;
 
          // aucune clé définie
          if (!$this->_publicKey)
          {
             $_JSON_PRINT->fail("public key is required");
             $_JSON_PRINT->print();
-            exit();
          }
+         $_PHPFASTCACHE->clear();
 
-         switch ($this->_publicKey)
+         $_CACHE_KEY = md5('token-access-' . $this->_publicKey);
+         $_CACHE[$_CACHE_KEY] = $_PHPFASTCACHE->getItem($_CACHE_KEY);
+         if (!@$_CACHE[$_CACHE_KEY]->isHit())
          {
-            case "dexocard_oiql4ys4w0nxq89" :
-            {
-               $this->_access['dexocard']['get_tcgo_code'] = true;
+            $_SQL          = $_MYSQL->connect(array("api"));
+            $result        = $_SQL['api']->query("SELECT `token_access` FROM `api`.`token` WHERE `token_id` = :token_id;", [":token_id" => $this->_publicKey])->fetch(PDO::FETCH_ASSOC);   
+            $result        = (empty($result) ? array() : json_decode($result['token_access'], true));
 
-               return true;
-               break;
-            }
-
-            default:
-            {               
-               $_JSON_PRINT->fail("wrong public key");
-
-               usleep(1000000);
-               $_JSON_PRINT->print();
-               
-               return false;
-               break;
-            }
+            setCache($_CACHE[$_CACHE_KEY], $result, (86400 * 30));
+            array_push($_DATA_DEBUG, array('token' => array('from_db_cache' => 0)));
          }
+         else
+         {
+            $result = $_CACHE[$_CACHE_KEY]->get();
+
+            array_push($_DATA_DEBUG, array('token' => array('from_db_cache' => 1)));
+         }
+
+         $this->_access = $result;
       }
 
       function __construct()

@@ -10,7 +10,7 @@
       {
          CacheManager::setDefaultConfig(new ConfigurationOption(
          [
-               'path' => $_CONFIG['PHPFASTCACHE']['FILES']['FOLDER']
+            'path' => $_CONFIG['PHPFASTCACHE']['FILES']['FOLDER']
          ]));
          
          $_PHPFASTCACHE = CacheManager::getInstance('files');
@@ -23,12 +23,21 @@
          // REDIS
          $_PHPFASTCACHE = CacheManager::getInstance('redis', new Config
          ([
-               'host'      => $_CONFIG['PHPFASTCACHE']['REDIS']['HOST'],
-               'port'      => $_CONFIG['PHPFASTCACHE']['REDIS']['PORT'],
-               'password'  => $_CONFIG['PHPFASTCACHE']['REDIS']['PASS'],
+            'host'      => $_CONFIG['PHPFASTCACHE']['REDIS']['HOST'],
+            'port'      => $_CONFIG['PHPFASTCACHE']['REDIS']['PORT'],
+            'password'  => $_CONFIG['PHPFASTCACHE']['REDIS']['PASS'],
          ]));
 
          break;
       }
-    }
+   }
+
+   function setCache($variablePhpfastcache, $data, $expire, $arrayTags = null)
+   {
+      global $_PHPFASTCACHE;
+      
+      $variablePhpfastcache->set($data)->expiresAfter($expire);
+      $_PHPFASTCACHE->save($variablePhpfastcache);
+
+   }
 ?>

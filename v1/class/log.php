@@ -26,6 +26,7 @@
          global $_MYSQL;
          global $_TOKEN;
 
+         /*
          $_SQL    = $_MYSQL->connect(array("api"));
          $_SQL['api']->query
          ("
@@ -43,7 +44,7 @@
                ":log_data"    => $data,
                ":log_success" => $success,
             ]
-         );
+         );*/
       }
    }
 

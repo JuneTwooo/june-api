@@ -4,10 +4,12 @@
       private $_state;
       private $_fail_raison;
       private $_response;
+      public $_printed;
 
       function __construct()
       {
-         $this->_state      = 0;
+         $this->_state        = 0;
+         $this->_response     = 0;
          $this->_fail_raison  = null;
       }
 
@@ -41,10 +43,12 @@
 
       public function print()
       {
+         global $_CONFIG;
+         global $_DATA_DEBUG;
          global $_LOG;
          global $_BENCH_START_TIME;
 
-         $_BENCH_END_TIME = microtime(TRUE);
+         $_BENCH_END_TIME = microtime(true);
 
          $callBack = json_encode(
             array(
@@ -52,7 +56,8 @@
                'raison'    => $this->_fail_raison,
                'response'  => $this->_response,
                'timestamp' => time(),
-               'bench'     => ($_BENCH_END_TIME - $_BENCH_START_TIME)
+               'debug'     => ($_CONFIG['DEBUG'] ? $_DATA_DEBUG : NULL),
+               'bench'     => ($_CONFIG['DEBUG'] ? ($_BENCH_END_TIME - $_BENCH_START_TIME) : NULL)
             )
          );
 

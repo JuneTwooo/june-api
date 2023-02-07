@@ -14,6 +14,7 @@
          global $_MYSQL;
          global $_LOG;
 			global $_PUBLIC_KEY;
+			global $_METHOD;
 
 			$callback = $path_to_include;
 
@@ -81,10 +82,13 @@
 			} 
 			else
 			{
-				include $path_to_include;
+				if (file_exists($path_to_include))
+				{
+					include $path_to_include;
+				}
 			}
 
-			exit();
+			if ($_JSON_PRINT->_printed) { exit(); }
 		}
 	}
 ?>
