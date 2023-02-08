@@ -6,213 +6,187 @@
       {
          case 'GET':
          {
-            // WHERE
-               $_ASSOCS_VARS  = array();
-               $_BLOC_WHERE   = '';
-               foreach ($_GET as $param => $value)
+            /*
+               ?filters=[{"filter":{"data":"card_level","operand":">=","value":1}},{"filter":{"data":"card_level","operand":"<","value":20}}]
+            */
+
+            $_BLOC_WHERE   = '';
+            $_ASSOCS_VARS  = array();
+            
+            // Filtres
+               if (!empty($_GET['filters']))
                {
-                  switch (strtolower($param))
+                  foreach (json_decode($_GET['filters']) as $i => $item)
                   {
-                     case 'length':
+                     foreach ($item as $dataFilter)
                      {
-                        $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":length" => intval($value)]);
+                        $filter_Data      = $dataFilter->data;
+                        $filter_Operand   = $dataFilter->operand;
+                        $filter_Value     = $dataFilter->value;
 
-                        break;
-                     }
-
-                     case 'serieid':
-                     case 'setid':
-                     case 'cardid':
-                     case 'rarity':
-                     case 'raritysimplified':
-                     case 'supertype':
-                     {
-                        $_BLOC_WHERE      = $_BLOC_WHERE . " `card_$param` LIKE :$param AND";
-                        $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":" . $param => $value]);
-
-                        break;
-                     }
-
-                     case 'level':
-                     case 'hp':
-                     {
-                        $_BLOC_WHERE      = $_BLOC_WHERE . " `card_$param` " . substr($value, 0, 1) . " :$param AND";
-                        $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":" . $param => intval(substr($value, 1, 9999))]);
-
-                        break;
+                        $_BLOC_WHERE      = $_BLOC_WHERE . " `$filter_Data` $filter_Operand :$filter_Data" . "_$i AND";
+                        $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":" . $filter_Data . "_" . $i => $filter_Value]);
                      }
                   }
                }
 
-            // DEFAULTS VARS
-               if (empty($_ASSOCS_VARS[':length'])) { $_ASSOCS_VARS[':length'] = 1; }
+            // Defaults vars
+               if (!empty($_GET['limit']))   { $_LIMIT   = intval($_GET['limit']);  } else { $_LIMIT  = 10; }
+               if (!empty($_GET['offset']))  { $_OFFSET  = intval($_GET['offset']); } else { $_OFFSET = 0; }
 
-            // formatage des données envoyées
-               $QUERY = "
-                  SELECT 
 
-                     `card_id`,
-                     `card_number`,
-                     `card_index`,
-                     `card_serieid`,
-                     `card_setid`,
-                     `card_level`,
-                     `card_artist`,
-                     `card_rarity`,
-                     `card_raritySimplified`,
-                     `card_rarityIndex`,
-                     `card_supertype`,
+            // Création requête SQL
+               $_BLOC_SELECT =
+               "
+                  `card_id`,
+                  `card_number`,
+                  `card_index`,
+                  `card_serieid`,
+                  `card_setid`,
+                  `card_level`,
+                  `card_artist`,
+                  `card_rarity`,
+                  `card_raritySimplified`,
+                  `card_rarityIndex`,
+                  `card_supertype`,
 
-                     `card_name_nameFR`,
-                     `card_name_nameEN`,
+                  `card_name_nameFR`,
+                  `card_name_nameEN`,
 
-                     `card_flavorText_flavorTextFR`,
-                     `card_flavorText_flavorTextEN`,
+                  `card_flavorText_flavorTextFR`,
+                  `card_flavorText_flavorTextEN`,
 
-                     JSON_OBJECT
+                  JSON_OBJECT
+                  (
+                     'israinbow', `card_propriety_israinbow`,
+                     'isgold', `card_propriety_isgold`,
+                     'isblackgold', `card_propriety_isblackgold`,
+                     'isprime', `card_propriety_isprime`,
+                     'isescouade', `card_propriety_isescouade`,
+                     'isexmin', `card_propriety_isexmin`,
+                     'isEXmaj', `card_propriety_isEXmaj`,
+                     'isstar', `card_propriety_isstar`,
+                     'isdelta', `card_propriety_isdelta`,
+                     'isTURBO', `card_propriety_isTURBO`,
+                     'isGX', `card_propriety_isGX`,
+                     'isV', `card_propriety_isV`,
+                     'isVMAX', `card_propriety_isVMAX`,
+                     'isVSTAR', `card_propriety_isVSTAR`,
+                     'isLEGEND', `card_propriety_isLEGEND`,
+                     'isobscur', `card_propriety_isobscur`,
+                     'islumineux', `card_propriety_islumineux`,
+                     'isbrillant', `card_propriety_isbrillant`,
+                     'isnivx', `card_propriety_isnivx`,
+                     'ismega', `card_propriety_ismega`
+                  ) AS `card_property`,
+
+                  JSON_OBJECT
+                  (
+                     'type1_id', `card_retreatCost_type1`,
+                     'type2_id', `card_retreatCost_type2`,
+                     'type3_id', `card_retreatCost_type3`,
+                     'type4_id', `card_retreatCost_type4`,
+                     'type5_id', `card_retreatCost_type5`
+                  ) AS `card_retreatCost`,
+
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'israinbow', `card_propriety_israinbow`,
-                        'isgold', `card_propriety_isgold`,
-                        'isblackgold', `card_propriety_isblackgold`,
-                        'isprime', `card_propriety_isprime`,
-                        'isescouade', `card_propriety_isescouade`,
-                        'isexmin', `card_propriety_isexmin`,
-                        'isEXmaj', `card_propriety_isEXmaj`,
-                        'isstar', `card_propriety_isstar`,
-                        'isdelta', `card_propriety_isdelta`,
-                        'isTURBO', `card_propriety_isTURBO`,
-                        'isGX', `card_propriety_isGX`,
-                        'isV', `card_propriety_isV`,
-                        'isVMAX', `card_propriety_isVMAX`,
-                        'isVSTAR', `card_propriety_isVSTAR`,
-                        'isLEGEND', `card_propriety_isLEGEND`,
-                        'isobscur', `card_propriety_isobscur`,
-                        'islumineux', `card_propriety_islumineux`,
-                        'isbrillant', `card_propriety_isbrillant`,
-                        'isnivx', `card_propriety_isnivx`,
-                        'ismega', `card_propriety_ismega`
-                     ) AS `card_property`,
+                        'name', `card_abilities_name`,
+                        'text', `card_abilities_text`,
+                        'type', `card_abilities_type`
+                     )) FROM `card_abilities` WHERE `card_abilities_cardid` = `card_id` AND `card_abilities_lang` = 'FR' LIMIT 0,1
+                  ) AS `card_abilities_FR`,
 
-                     JSON_OBJECT
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'type1_id', `card_retreatCost_type1`,
-                        'type2_id', `card_retreatCost_type2`,
-                        'type3_id', `card_retreatCost_type3`,
-                        'type4_id', `card_retreatCost_type4`,
-                        'type5_id', `card_retreatCost_type5`
-                     ) AS `card_retreatCost`,
+                        'name',                 `card_abilities_name`,
+                        'text',                 `card_abilities_text`,
+                        'type',                 `card_abilities_type`
+                     )) FROM `card_abilities` WHERE `card_abilities_cardid` = `card_id` AND `card_abilities_lang` = 'EN' LIMIT 0,1
+                  ) AS `card_abilities_EN`,
 
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        SELECT JSON_ARRAYAGG(JSON_OBJECT
-                        (
-                           'name', `card_abilities_name`,
-                           'text', `card_abilities_text`,
-                           'type', `card_abilities_type`
-                        )) FROM `card_abilities` WHERE `card_abilities_cardid` = `card_id` AND `card_abilities_lang` = 'FR' LIMIT 0,1
-                     ) AS `card_abilities_FR`,
+                        'name',                 `card_attacks_name`,
+                        'text',                 `card_attacks_text`,
+                        'damage',               `card_attacks_damage`,
+                        'convertedEnergyCost',  `card_attacks_convertedEnergyCost`,
+                        'costtypeid1',          `card_attacks_costtypeid1`,
+                        'costtypeid2',          `card_attacks_costtypeid2`,
+                        'costtypeid3',          `card_attacks_costtypeid3`,
+                        'costtypeid4',          `card_attacks_costtypeid4`,
+                        'costtypeid5',          `card_attacks_costtypeid5`
+                     )) FROM `card_attacks` WHERE `card_attacks_cardid` = `card_id` AND `card_attacks_lang` = 'FR'
+                  ) AS `card_attacks_FR`,
 
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        SELECT JSON_ARRAYAGG(JSON_OBJECT
-                        (
-                           'name',                 `card_abilities_name`,
-                           'text',                 `card_abilities_text`,
-                           'type',                 `card_abilities_type`
-                        )) FROM `card_abilities` WHERE `card_abilities_cardid` = `card_id` AND `card_abilities_lang` = 'EN' LIMIT 0,1
-                     ) AS `card_abilities_EN`,
-
+                        'name',                 `card_attacks_name`,
+                        'text',                 `card_attacks_text`,
+                        'damage',               `card_attacks_damage`,
+                        'convertedEnergyCost',  `card_attacks_convertedEnergyCost`,
+                        'costtypeid1',          `card_attacks_costtypeid1`,
+                        'costtypeid2',          `card_attacks_costtypeid2`,
+                        'costtypeid3',          `card_attacks_costtypeid3`,
+                        'costtypeid4',          `card_attacks_costtypeid4`,
+                        'costtypeid5',          `card_attacks_costtypeid5`
+                     )) FROM `card_attacks` WHERE `card_attacks_cardid` = `card_id` AND `card_attacks_lang` = 'EN'
+                  ) AS `card_attacks_EN`,
+            
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        SELECT JSON_ARRAYAGG(JSON_OBJECT
-                        (
-                           'name',                 `card_attacks_name`,
-                           'text',                 `card_attacks_text`,
-                           'damage',               `card_attacks_damage`,
-                           'convertedEnergyCost',  `card_attacks_convertedEnergyCost`,
-                           'costtypeid1',          `card_attacks_costtypeid1`,
-                           'costtypeid2',          `card_attacks_costtypeid2`,
-                           'costtypeid3',          `card_attacks_costtypeid3`,
-                           'costtypeid4',          `card_attacks_costtypeid4`,
-                           'costtypeid5',          `card_attacks_costtypeid5`
-                        )) FROM `card_attacks` WHERE `card_attacks_cardid` = `card_id` AND `card_attacks_lang` = 'FR'
-                     ) AS `card_attacks_FR`,
+                        'typeid', `card_types_typeid`
+                     )) FROM `card_types` WHERE `card_types_cardid` = `card_id`
+                  ) AS `card_types`,
 
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        SELECT JSON_ARRAYAGG(JSON_OBJECT
-                        (
-                           'name',                 `card_attacks_name`,
-                           'text',                 `card_attacks_text`,
-                           'damage',               `card_attacks_damage`,
-                           'convertedEnergyCost',  `card_attacks_convertedEnergyCost`,
-                           'costtypeid1',          `card_attacks_costtypeid1`,
-                           'costtypeid2',          `card_attacks_costtypeid2`,
-                           'costtypeid3',          `card_attacks_costtypeid3`,
-                           'costtypeid4',          `card_attacks_costtypeid4`,
-                           'costtypeid5',          `card_attacks_costtypeid5`
-                        )) FROM `card_attacks` WHERE `card_attacks_cardid` = `card_id` AND `card_attacks_lang` = 'EN'
-                     ) AS `card_attacks_EN`,
-               
+                        'typeid',   `card_weaknesses_typeid`,
+                        'value',    `card_weaknesses_value`
+                     )) FROM `card_weaknesses` WHERE `card_weaknesses_cardid` = `card_id`
+                  ) AS `card_weaknesses`,
+
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        SELECT JSON_ARRAYAGG(JSON_OBJECT
-                        (
-                           'typeid', `card_types_typeid`
-                        )) FROM `card_types` WHERE `card_types_cardid` = `card_id`
-                     ) AS `card_types`,
+                        'dexId', `card_nationalDexId_DexId`
+                     )) FROM `card_nationalDexId` WHERE `card_nationalDexId_cardid` = `card_id`
+                  ) AS `card_nationalDexId`,
 
-                     (
-                        SELECT JSON_ARRAYAGG(JSON_OBJECT
-                        (
-                           'typeid',   `card_weaknesses_typeid`,
-                           'value',    `card_weaknesses_value`
-                        )) FROM `card_weaknesses` WHERE `card_weaknesses_cardid` = `card_id`
-                     ) AS `card_weaknesses`,
+                  JSON_OBJECT
+                  (
+                     'highFR',      `card_images_imagesHighFR`,
+                     'highEN',      `card_images_imagesHighEN`,
+                     'smallFR',     `card_images_imagesSmallFR`,
+                     'smallEN',     `card_images_imagesSmallEN`,
+                     'hasRelief ',  `card_holo_HasRelief`,
+                     'lastUpdate',  `card_images_LastUpdate`
+                  ) AS `card_image`,
 
-                     (
-                        SELECT JSON_ARRAYAGG(JSON_OBJECT
-                        (
-                           'dexId', `card_nationalDexId_DexId`
-                        )) FROM `card_nationalDexId` WHERE `card_nationalDexId_cardid` = `card_id`
-                     ) AS `card_nationalDexId`,
-
-                     JSON_OBJECT
-                     (
-                        'highFR',      `card_images_imagesHighFR`,
-                        'highEN',      `card_images_imagesHighEN`,
-                        'smallFR',     `card_images_imagesSmallFR`,
-                        'smallEN',     `card_images_imagesSmallEN`,
-                        'hasRelief ',  `card_holo_HasRelief`,
-                        'lastUpdate',  `card_images_LastUpdate`
-                     ) AS `card_image`,
-
-                     JSON_OBJECT
-                     (
-                        'normal',      `card_holo_NormalExist`,
-                        'holo',        IF(`card_holo_FullExist` IS NOT NULL, 1, `card_holo_HoloExist` ),
-                        'reverse',     `card_holo_ReverseExist`
-                     ) AS `card_variant`                   
-
-                  FROM `card`
-
-                  LEFT JOIN `card_name`            ON `card_name_cardid`         = `card_id`
-                  LEFT JOIN `card_flavorText`      ON `card_flavorText_cardid`   = `card_id`
-                  LEFT JOIN `card_propriety`       ON `card_propriety_cardid`    = `card_id`
-                  LEFT JOIN `card_retreatCost`     ON `card_retreatCost_cardid`  = `card_id`
-                  LEFT JOIN `card_images`          ON `card_images_cardid`       = `card_id`
-                  LEFT JOIN `card_holo`            ON `card_holo_cardid`         = `card_id`
-
-                  " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
-
-                  LIMIT 0, :length
-                  ;
+                  JSON_OBJECT
+                  (
+                     'normal',      `card_holo_NormalExist`,
+                     'holo',        IF(`card_holo_FullExist` IS NOT NULL, 1, `card_holo_HoloExist` ),
+                     'reverse',     `card_holo_ReverseExist`
+                  ) AS `card_variant`
                ";
 
-               $response = array();
+            // Formatage des données envoyées
+               $results_print = array();
                $_SQL    = $_MYSQL->connect(array("api"));
-               foreach ($_SQL['api']->debug()->query
+               foreach ($_SQL['api']->query
                (
-                  $QUERY, 
+                  getQuery_Cards($_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT), 
                   $_ASSOCS_VARS
                )->fetchAll(PDO::FETCH_ASSOC) as $thisCard)
                {
-                  array_push($response, array
+                  array_push($results_print, array
                   (
                      'id'                 => $thisCard['card_id'],
                      'serie_id'           => $thisCard['card_serieid'],
@@ -276,11 +250,47 @@
                   ));
                }
 
+
+
+               
+               $results_unfiltered = $_SQL['api']->query
+               (
+                  getQuery_Cards("COUNT(*) AS total_rows_unfiltered", $_BLOC_WHERE, NULL), 
+                  $_ASSOCS_VARS
+               )->fetch(PDO::FETCH_ASSOC)['total_rows_unfiltered'];
+
+               $_JSON_PRINT->addDataBefore('results_count',          count($results_print)); 
+               $_JSON_PRINT->addDataBefore('results_filters_count',  $results_unfiltered); 
+
                $_JSON_PRINT->success(); 
-               $_JSON_PRINT->response($response); 
+               $_JSON_PRINT->response($results_print); 
                $_JSON_PRINT->print();
 
             break;
          }
+      }
+
+      function getQuery_Cards($_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
+      {
+         // Assemblage requête SQL
+            return "
+               SELECT 
+
+               " . $_BLOC_SELECT . "
+
+               FROM `card`
+
+               LEFT JOIN `card_name`            ON `card_name_cardid`         = `card_id`
+               LEFT JOIN `card_flavorText`      ON `card_flavorText_cardid`   = `card_id`
+               LEFT JOIN `card_propriety`       ON `card_propriety_cardid`    = `card_id`
+               LEFT JOIN `card_retreatCost`     ON `card_retreatCost_cardid`  = `card_id`
+               LEFT JOIN `card_images`          ON `card_images_cardid`       = `card_id`
+               LEFT JOIN `card_holo`            ON `card_holo_cardid`         = `card_id`
+
+               " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
+
+               " . ($_BLOC_LIMIT ? $_BLOC_LIMIT : '') . "
+               ;
+            ";
       }
 ?>
