@@ -16,8 +16,8 @@
             $_ASSOCS_VARS     = array();
 
             // Defaults vars
-            if (!empty($_GET['limit']))   { $_LIMIT   = intval($_GET['limit']);  } else { $_LIMIT  = 10; }
-            if (!empty($_GET['offset']))  { $_OFFSET  = intval($_GET['offset']); } else { $_OFFSET = 0; }
+            if (!empty($_GET['limit']))   { $_LIMIT   = intval($_GET['limit']);  }                                      else { $_LIMIT  = 10; }
+            if (!empty($_GET['offset']))  { $_OFFSET  = intval($_GET['offset']); }                                      else { $_OFFSET = 0; }
             if (!empty($_GET['operand']))    { $_OPERAND    = (strtolower($_GET['operand']) == 'or' ? "OR" : "AND"); }  else { $_OPERAND = "AND"; }
             
             // Filtres
