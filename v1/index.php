@@ -33,12 +33,12 @@
       require_once($_CONFIG['ROOT'] . 'v1/init.php');
       require_once($_CONFIG['ROOT'] . 'v1/class/print_json.php');
       require_once($_CONFIG['ROOT'] . 'v1/class/token.php');
-      
       require_once($_CONFIG['ROOT'] . 'v1/class/route.php');
       require_once($_CONFIG['ROOT'] . 'v1/class/mysql.php');
-      
       require_once($_CONFIG['ROOT'] . 'v1/class/log.php');
       require_once($_CONFIG['ROOT'] . 'v1/error-handler.php');
+      require_once($_CONFIG['ROOT'] . 'v1/functions.global.php');
+
 
    // Class
       $_JSON_PRINT   = new print_JSON();
@@ -60,11 +60,11 @@
                $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/dexocard/';
 
                // TCG
-                  // CARTES
-                     $_ROUTE->get('/v1/tcg/card',                          $_PRODUCT . 'tcg/card');
+                  $_ROUTE->get('/v1/tcg/card',                          $_PRODUCT . 'tcg/card');
+                  $_ROUTE->get('/v1/tcg/set',                           $_PRODUCT . 'tcg/set');
 
                // TCGO (Online Game)
-                  $_ROUTE->get('/v1/tcgo/code',                            $_PRODUCT . 'tcgo/code');
+                  $_ROUTE->get('/v1/tcgo/code',                         $_PRODUCT . 'tcgo/code');
 
                break;
             }

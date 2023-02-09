@@ -27,6 +27,7 @@
 
       public function auth()
       {
+         global $_CONFIG;
          global $_JSON_PRINT;
          global $_MYSQL;
          global $_PHPFASTCACHE;
@@ -38,7 +39,12 @@
             $_JSON_PRINT->fail("public key is required");
             $_JSON_PRINT->print();
          }
-         $_PHPFASTCACHE->clear();
+
+         // pas de cache en mode debug
+         if ($_CONFIG['DEBUG'])
+         {
+            $_PHPFASTCACHE->clear();
+         }
 
          $_CACHE_KEY = md5('token-access-' . $this->_publicKey);
          $_CACHE[$_CACHE_KEY] = $_PHPFASTCACHE->getItem($_CACHE_KEY);
