@@ -7,7 +7,7 @@
          case 'GET':
          {
             /*
-               ?filters=[{"filter":{"data":"card_level","operand":">=","value":1}},{"filter":{"data":"card_level","operand":"<","value":20}}]
+               ?filters=[{"filter":{"data":"level","operand":">=","value":1}},{"filter":{"data":"level","operand":"<","value":20}}]
             */
 
             $_BLOC_WHERE   = '';
@@ -24,8 +24,17 @@
                         $filter_Operand   = $dataFilter->operand;
                         $filter_Value     = $dataFilter->value;
 
-                        $_BLOC_WHERE      = $_BLOC_WHERE . " `$filter_Data` $filter_Operand :$filter_Data" . "_$i AND";
-                        $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":" . $filter_Data . "_" . $i => $filter_Value]);
+                        switch ($filter_Data)
+                        {
+                           case 'hp':
+                           case 'level':
+                           {
+                              $_BLOC_WHERE      = $_BLOC_WHERE . " `card_$filter_Data` $filter_Operand :$filter_Data" . "_$i AND ";
+                              $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":" . $filter_Data . "_" . $i => $filter_Value]);
+
+                              break;
+                           }
+                        }
                      }
                   }
                }
@@ -33,7 +42,6 @@
             // Defaults vars
                if (!empty($_GET['limit']))   { $_LIMIT   = intval($_GET['limit']);  } else { $_LIMIT  = 10; }
                if (!empty($_GET['offset']))  { $_OFFSET  = intval($_GET['offset']); } else { $_OFFSET = 0; }
-
 
             // Création requête SQL
                $_BLOC_SELECT =
