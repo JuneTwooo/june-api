@@ -114,16 +114,19 @@
                   ) AS `card_nationalDexId`,
 
                   (
-                     SELECT (JSON_OBJECT(
-                        'date', (card_prices_DateLastSeen), 
-                        'avg', avg(`card_prices_Price`)
-                     ))
-                     FROM `card_price_ebay` WHERE `card_prices_CardId` = 'swsh12-59' AND `card_prices_GraderId` IS NULL AND `card_prices_Sold` = 1 
-                     GROUP BY DATE(card_prices_DateLastSeen) 
-                     ORDER BY card_prices_DateLastSeen ASC
-                  ) AS test
-
-
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
+                     (
+                        'item_id', `card_prices_ItemId`,
+                        'title', `card_prices_Title`,
+                        'price', `card_prices_Price`,
+                        'variant', `card_prices_Type`
+                     )) FROM `card_price_ebay` 
+                     WHERE 
+                        `card_prices_CardId` = `card_id` AND 
+                        `card_prices_Sold` = 0 AND
+                        `card_prices_GraderId` IS NULL
+                     ORDER BY `card_prices_DateLastSeen` ASC
+                  ) AS `ebay_prices_unsold_ungraded`
                ";
 
             // Formatage des données envoyées
@@ -131,13 +134,42 @@
                $_SQL    = $_MYSQL->connect(array("api"));
                foreach ($_SQL['api']->query
                (
-                  getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT), 
+                  getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),
                   $_ASSOCS_VARS
                )->fetchAll(PDO::FETCH_ASSOC) as $thisCard)
                {
+                  $prices = array();
+
+                  $prices['sold_history'] = $_SQL['api']->query("
+                     SELECT 
+                        DATE(`card_prices_DateLastSeen`) as `date`,
+                        COUNT(*) AS `count`,
+                        CAST(AVG(`card_prices_Price`) AS DECIMAL(10,2)) AS `avg`,
+                        CAST(MIN(`card_prices_Price`) AS DECIMAL(10,2)) AS `min`,
+                        CAST(MAX(`card_prices_Price`) AS DECIMAL(10,2)) AS `max`
+                     FROM `card_price_ebay` 
+                     WHERE `card_prices_CardId` = :card_id AND `card_prices_GraderId` IS NULL AND `card_prices_Sold` = 1 
+                     GROUP BY DATE(`card_prices_DateLastSeen`)
+                     ORDER BY `date` ASC;
+                  ", [":card_id" => $thisCard['card_id']])->fetchAll(PDO::FETCH_ASSOC);
+
                   array_push($results_print, array
                   (
                      'id'                 => $thisCard['card_id'],
+
+                     'ebay'               => array
+                     (
+                        'unsold'               => array
+                        (
+                           'ungraded'        => (empty($thisCard['ebay_prices_unsold_ungraded']) ? NULL : json_decode($thisCard['ebay_prices_unsold_ungraded'], true)),
+                        ),
+   
+                        'history'            => array
+                        (
+                           'sold'            => (empty($prices['sold_history']) ? NULL : ($prices['sold_history'])),
+                        ),   
+                     ),
+
                   ));
                }
 
