@@ -125,8 +125,25 @@
                         `card_prices_CardId` = `card_id` AND 
                         `card_prices_Sold` = 0 AND
                         `card_prices_GraderId` IS NULL
-                     ORDER BY `card_prices_DateLastSeen` ASC
-                  ) AS `ebay_prices_unsold_ungraded`
+                     ORDER BY `card_prices_Price` ASC
+                  ) AS `ebay_prices_unsold_ungraded`,
+
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
+                     (
+                        'item_id', `card_prices_ItemId`,
+                        'grader_id', `card_prices_GraderId`,
+                        'grade', `card_prices_Grade`,
+                        'title', `card_prices_Title`,
+                        'price', `card_prices_Price`,
+                        'variant', `card_prices_Type`
+                     )) FROM `card_price_ebay` 
+                     WHERE 
+                        `card_prices_CardId` = `card_id` AND 
+                        `card_prices_Sold` = 0 AND
+                        `card_prices_GraderId` IS NOT NULL
+                     ORDER BY `card_prices_Grade` ASC
+                  ) AS `ebay_prices_unsold_graded`
                ";
 
             // Formatage des données envoyées
@@ -162,11 +179,12 @@
                         'unsold'               => array
                         (
                            'ungraded'        => (empty($thisCard['ebay_prices_unsold_ungraded']) ? NULL : json_decode($thisCard['ebay_prices_unsold_ungraded'], true)),
+                           'graded'          => (empty($thisCard['ebay_prices_unsold_graded']) ? NULL : json_decode($thisCard['ebay_prices_unsold_graded'], true)),
                         ),
    
                         'history'            => array
                         (
-                           'sold'            => (empty($prices['sold_history']) ? NULL : ($prices['sold_history'])),
+                           'sold_ungraded'   => (empty($prices['sold_history']) ? NULL : ($prices['sold_history'])),
                         ),   
                      ),
 
