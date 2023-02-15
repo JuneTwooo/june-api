@@ -177,6 +177,8 @@
 
                " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
 
+               ORDER BY `card_set_id` ASC
+
                " . ($_BLOC_LIMIT ? $_BLOC_LIMIT : '') . "
                ;
             ";

@@ -16,10 +16,17 @@
             $_ASSOCS_VARS     = array();
 
             // Defaults vars
-            if (!empty($_GET['limit']))   { $_LIMIT   = intval($_GET['limit']);  }                                      else { $_LIMIT  = 10; }
-            if (!empty($_GET['offset']))  { $_OFFSET  = intval($_GET['offset']); }                                      else { $_OFFSET = 0; }
-            if (!empty($_GET['operand']))    { $_OPERAND    = (strtolower($_GET['operand']) == 'or' ? "OR" : "AND"); }  else { $_OPERAND = "AND"; }
+               if (!empty($_GET['limit']))      { $_LIMIT   = intval($_GET['limit']);  }                                      else { $_LIMIT  = 10; }
+               if (!empty($_GET['offset']))     { $_OFFSET  = intval($_GET['offset']); }                                      else { $_OFFSET = 0; }
+               if (!empty($_GET['operand']))    { $_OPERAND = (strtolower($_GET['operand']) == 'or' ? "OR" : "AND"); }        else { $_OPERAND = "AND"; }
             
+            // Handles
+               if ($_LIMIT > 3000)
+               {
+                  $_JSON_PRINT->fail("maximum limit is 3000"); 
+                  $_JSON_PRINT->print();
+               }
+               
             // Filtres
                if (!empty($_GET['filters']))
                {
@@ -172,45 +179,49 @@
                   `card_raritySimplified`,
                   `card_rarityIndex`,
                   `card_supertype`,
+                  `card_convertedRetreatCost`,
 
-                  `card_name_nameFR`,
-                  `card_name_nameEN`,
-
-                  `card_flavorText_flavorTextFR`,
-                  `card_flavorText_flavorTextEN`,
-
-                  JSON_OBJECT
                   (
-                     'israinbow', `card_propriety_israinbow`,
-                     'isgold', `card_propriety_isgold`,
-                     'isblackgold', `card_propriety_isblackgold`,
-                     'isprime', `card_propriety_isprime`,
-                     'isescouade', `card_propriety_isescouade`,
-                     'isexmin', `card_propriety_isexmin`,
-                     'isEXmaj', `card_propriety_isEXmaj`,
-                     'isstar', `card_propriety_isstar`,
-                     'isdelta', `card_propriety_isdelta`,
-                     'isTURBO', `card_propriety_isTURBO`,
-                     'isGX', `card_propriety_isGX`,
-                     'isV', `card_propriety_isV`,
-                     'isVMAX', `card_propriety_isVMAX`,
-                     'isVSTAR', `card_propriety_isVSTAR`,
-                     'isLEGEND', `card_propriety_isLEGEND`,
-                     'isobscur', `card_propriety_isobscur`,
-                     'islumineux', `card_propriety_islumineux`,
-                     'isbrillant', `card_propriety_isbrillant`,
-                     'isnivx', `card_propriety_isnivx`,
-                     'ismega', `card_propriety_ismega`
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
+                     (
+                        'FR', `card_name_nameFR`,
+                        'EN', `card_name_nameEN`
+                     )) FROM `card_name` WHERE `card_name_cardid` = `card_id` LIMIT 0,1
+                  ) AS `card_name`,
+
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
+                     (
+                        'FR', `card_flavorText_flavorTextFR`,
+                        'EN', `card_flavorText_flavorTextEN`
+                     )) FROM `card_flavorText` WHERE `card_flavorText_cardid` = `card_id` LIMIT 0,1
+                  ) AS `card_flavorText`,
+
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
+                     (
+                        'israinbow', `card_propriety_israinbow`,
+                        'isgold', `card_propriety_isgold`,
+                        'isblackgold', `card_propriety_isblackgold`,
+                        'isprime', `card_propriety_isprime`,
+                        'isescouade', `card_propriety_isescouade`,
+                        'isexmin', `card_propriety_isexmin`,
+                        'isEXmaj', `card_propriety_isEXmaj`,
+                        'isstar', `card_propriety_isstar`,
+                        'isdelta', `card_propriety_isdelta`,
+                        'isTURBO', `card_propriety_isTURBO`,
+                        'isGX', `card_propriety_isGX`,
+                        'isV', `card_propriety_isV`,
+                        'isVMAX', `card_propriety_isVMAX`,
+                        'isVSTAR', `card_propriety_isVSTAR`,
+                        'isLEGEND', `card_propriety_isLEGEND`,
+                        'isobscur', `card_propriety_isobscur`,
+                        'islumineux', `card_propriety_islumineux`,
+                        'isbrillant', `card_propriety_isbrillant`,
+                        'isnivx', `card_propriety_isnivx`,
+                        'ismega', `card_propriety_ismega`
+                     )) FROM `card_propriety` WHERE `card_propriety_cardid` = `card_id` LIMIT 0,1
                   ) AS `card_property`,
-
-                  JSON_OBJECT
-                  (
-                     'type1_id', `card_retreatCost_type1`,
-                     'type2_id', `card_retreatCost_type2`,
-                     'type3_id', `card_retreatCost_type3`,
-                     'type4_id', `card_retreatCost_type4`,
-                     'type5_id', `card_retreatCost_type5`
-                  ) AS `card_retreatCost`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
@@ -282,22 +293,52 @@
                      )) FROM `card_nationalDexId` WHERE `card_nationalDexId_cardid` = `card_id`
                   ) AS `card_nationalDexId`,
 
-                  JSON_OBJECT
                   (
-                     'highFR',      `card_images_imagesHighFR`,
-                     'highEN',      `card_images_imagesHighEN`,
-                     'smallFR',     `card_images_imagesSmallFR`,
-                     'smallEN',     `card_images_imagesSmallEN`,
-                     'hasRelief ',  `card_holo_HasRelief`,
-                     'lastUpdate',  `card_images_LastUpdate`
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
+                     (
+                        'highFR',      `card_images_imagesHighFR`,
+                        'highEN',      `card_images_imagesHighEN`,
+                        'smallFR',     `card_images_imagesSmallFR`,
+                        'smallEN',     `card_images_imagesSmallEN`,
+                        'hasRelief ',  `card_holo_HasRelief`,
+                        'lastUpdate',  `card_images_LastUpdate`
+                     )) FROM `card_images` WHERE `card_images_cardid` = `card_id`
                   ) AS `card_image`,
 
                   JSON_OBJECT
                   (
                      'normal',      `card_holo_NormalExist`,
-                     'holo',        IF(`card_holo_FullExist` IS NOT NULL, 1, `card_holo_HoloExist` ),
+                     'holo',        IF(`card_holo_FullExist` IS NOT NULL, 1, `card_holo_HoloExist`),
                      'reverse',     `card_holo_ReverseExist`
-                  ) AS `card_variant`
+                  ) AS `card_variant`,
+
+                  (
+                     SELECT (JSON_OBJECT
+                     (
+                        'count', count(*),
+                        'avg', CAST(avg(`card_prices_Price`) AS DECIMAL(10,2)), 
+                        'min', CAST(min(`card_prices_Price`) AS DECIMAL(10,2)), 
+                        'max', CAST(max(`card_prices_Price`) AS DECIMAL(10,2)))) FROM `card_price_ebay` WHERE `card_prices_CardId` = `card_id` AND `card_prices_Sold` = 1 AND date_sub(`card_prices_DateLastSeen`, INTERVAL 7 day)
+                  ) AS `price_stats_sold_28`,
+
+                  (
+                     SELECT (JSON_OBJECT
+                     (
+                        'count', count(*),
+                        'avg', CAST(avg(`card_prices_Price`) AS DECIMAL(10,2)), 
+                        'min', CAST(min(`card_prices_Price`) AS DECIMAL(10,2)), 
+                        'max', CAST(max(`card_prices_Price`) AS DECIMAL(10,2)))) FROM `card_price_ebay` WHERE `card_prices_CardId` = `card_id` and card_prices_Grader = 'PCA' AND card_prices_Grade = 10 AND `card_prices_Sold` = 1 AND date_sub(`card_prices_DateLastSeen`, INTERVAL 28 day)
+                  ) AS `price_stats_sold_28_PCA_10`,
+
+                  (
+                     SELECT (JSON_OBJECT
+                     (
+                        'count', count(*),
+                        'avg', CAST(avg(`card_prices_Price`) AS DECIMAL(10,2)), 
+                        'min', CAST(min(`card_prices_Price`) AS DECIMAL(10,2)), 
+                        'max', CAST(max(`card_prices_Price`) AS DECIMAL(10,2)))) FROM `card_price_ebay` WHERE `card_prices_CardId` = `card_id` and card_prices_Grader = 'PCA' AND card_prices_Grade = 9.5 AND `card_prices_Sold` = 1 AND date_sub(`card_prices_DateLastSeen`, INTERVAL 28 day)
+                  ) AS `price_stats_sold_28_PCA_95`
+
                ";
 
             // Formatage des données envoyées
@@ -327,11 +368,7 @@
 
                      'variant'            => (empty($thisCard['card_variant']) ? NULL : json_decode($thisCard['card_variant'], true)),
 
-                     'name'               => array
-                     (
-                        'FR' => (empty($thisCard['card_name_nameFR']) ? NULL : $thisCard['card_name_nameFR']), 
-                        'EN' => (empty($thisCard['card_name_nameEN']) ? NULL : $thisCard['card_name_nameEN']), 
-                     ),
+                     'name'               => (empty($thisCard['card_name']) ? NULL : json_decode($thisCard['card_name'], true)),
 
                      'artist'             => array
                      (
@@ -340,11 +377,7 @@
 
                      'pokemon'            => (empty($thisCard['card_nationalDexId']) ? NULL : json_decode($thisCard['card_nationalDexId'], true)),
 
-                     'flavor_text'        => array
-                     (
-                        'FR' => (empty($thisCard['card_flavorText_flavorTextFR']) ? NULL : $thisCard['card_flavorText_flavorTextFR']), 
-                        'EN' => (empty($thisCard['card_flavorText_flavorTextEN']) ? NULL : $thisCard['card_flavorText_flavorTextEN']), 
-                     ),
+                     'flavor_text'        => (empty($thisCard['card_flavorText']) ? NULL : json_decode($thisCard['card_flavorText'], true)),
 
                      'abilities'          => array
                      (
@@ -360,13 +393,25 @@
 
                      'propriety'          => (empty($thisCard['card_property']) ? NULL : json_decode($thisCard['card_property'], true)),
 
-                     'retreatCost'        => (empty($thisCard['card_retreatCost']) ? NULL : json_decode($thisCard['card_retreatCost'], true)),
+                     'retreatCost'        => $thisCard['card_convertedRetreatCost'],
                      'weaknesses'         => (empty($thisCard['card_weaknesses']) ? NULL : json_decode($thisCard['card_weaknesses'], true)),
 
                      'image'              => (empty($thisCard['card_image']) ? NULL : json_decode($thisCard['card_image'], true)),
 
+                     'price_stats'        => array
+                     (
+                        'sold'         => array
+                        (
+                           'ungraded_28d' => (empty($thisCard['price_stats_sold_28']) ? NULL : json_decode($thisCard['price_stats_sold_28'], true)),
+                           'pca_10_28d' => (empty($thisCard['price_stats_sold_28_PCA_10']) ? NULL : json_decode($thisCard['price_stats_sold_28_PCA_10'], true)),
+                           'pca_95_28d' => (empty($thisCard['price_stats_sold_28_PCA_95']) ? NULL : json_decode($thisCard['price_stats_sold_28_PCA_95'], true)),
+                        ),
+                     ),
                   ));
                }
+
+               //usort($results_print, fn($a, $b) => $a['id'] <=> $b['id']);
+               array_multisort(array_column($results_print, 'id'), SORT_ASC, SORT_NATURAL, $results_print);
   
             // Envoi des données
                $results_unfiltered = $_SQL['api']->query
@@ -379,7 +424,7 @@
                $_JSON_PRINT->addDataBefore('results_filters_count',  $results_unfiltered); 
                
                // debug
-               //$_SQL['api']->debug()->query(getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS);
+               //$_SQL['api']->debug()->query(getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS); exit();
 
                $_JSON_PRINT->success(); 
                $_JSON_PRINT->response($results_print); 
@@ -399,11 +444,6 @@
 
                FROM `card`
 
-               LEFT JOIN `card_name`            ON `card_name_cardid`            = `card_id`
-               LEFT JOIN `card_flavorText`      ON `card_flavorText_cardid`      = `card_id`
-               LEFT JOIN `card_propriety`       ON `card_propriety_cardid`       = `card_id`
-               LEFT JOIN `card_retreatCost`     ON `card_retreatCost_cardid`     = `card_id`
-               LEFT JOIN `card_images`          ON `card_images_cardid`          = `card_id`
                LEFT JOIN `card_holo`            ON `card_holo_cardid`            = `card_id`
 
                " . (in_array("pokemonid",       $_FILTERS_ACTIVE) ? "LEFT JOIN `card_nationalDexId`   ON `card_nationalDexId_cardid`      = `card_id`" : '') . "
@@ -413,7 +453,11 @@
 
                " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
 
+               ORDER BY `card_setid` ASC, `card_index` ASC
+
                " . ($_BLOC_LIMIT ? $_BLOC_LIMIT : '') . "
+
+               
                ;
             ";
       }

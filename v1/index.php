@@ -61,6 +61,7 @@
 
                // TCG
                   $_ROUTE->get('/v1/tcg/card',                          $_PRODUCT . 'tcg/card');
+                  $_ROUTE->get('/v1/tcg/card/price',                    $_PRODUCT . 'tcg/card-price');
                   $_ROUTE->get('/v1/tcg/set',                           $_PRODUCT . 'tcg/set');
 
                // TCGO (Online Game)
