@@ -62,8 +62,6 @@
          global $_LOG;
          global $_BENCH_START_TIME;
 
-         $_BENCH_END_TIME = microtime(true);
-
          // Construction de la réponse
             $results = array
             (
@@ -94,6 +92,7 @@
             }
 
          // Ajout d'éléments de débug à la réponse
+            $_BENCH_END_TIME = microtime(true);
             $results = array_merge($results, array('timestamp' => time()));
             if ($_CONFIG['DEBUG']) { $results = array_merge($results, array('debug' => $_DATA_DEBUG)); }
             if ($_CONFIG['DEBUG']) { $results = array_merge($results, array('bench' =>  ($_BENCH_END_TIME - $_BENCH_START_TIME))); }

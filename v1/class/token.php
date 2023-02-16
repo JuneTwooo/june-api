@@ -15,7 +15,6 @@
          // search response
          $access_response = (empty($this->_access[$product]) ? NULL : $this->_access[$product]);
          foreach (explode('/', $key) as $route) { $access_response = (empty($access_response[$route]) ? NULL : $access_response[$route]); }
-
          if (empty($access_response[$_METHOD]))
          {
             $_JSON_PRINT->fail("access denied"); 

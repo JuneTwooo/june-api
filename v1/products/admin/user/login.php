@@ -6,24 +6,64 @@
       {
          case 'GET':
          {
+            // Check parameters
+               if (empty($_GET['email']) || !filter_var(@$_GET['email'], FILTER_VALIDATE_EMAIL))
+               {
+                  $_JSON_PRINT->fail("email is invalide or missing"); 
+                  $_JSON_PRINT->print();
+               }
 
-               $results_unfiltered = $_SQL['api']->query
-               (
-                  getQuery_Sets($_FILTERS_ACTIVE, "COUNT(*) AS total_rows_unfiltered", $_BLOC_WHERE, NULL), 
-                  $_ASSOCS_VARS
-               )->fetch(PDO::FETCH_ASSOC)['total_rows_unfiltered'];
+               if (empty($_GET['password']))
+               {
+                  $_JSON_PRINT->fail("password is invalide or missing"); 
+                  $_JSON_PRINT->print();
+               }
+         
+            // MySQL Connect
+               $_SQL = $_MYSQL->connect(array("api"));
 
-               $_JSON_PRINT->addDataBefore('results_count',          count($results_print)); 
-               $_JSON_PRINT->addDataBefore('results_filters_count',  $results_unfiltered); 
-               
-               // debug
-               //$_SQL['api']->debug()->query(getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS);
+            // Check email and password
+               $result = $_SQL['api']->query("
+                  SELECT 
+                     `api`.`user`.`user_id`,
+                     `api`.`user`.`user_password`,
+                     `api`.`user`.`user_tokenid`,
+                     `api`.`token`.token_access
+                  FROM 
+                     `api`.`user`
+                  LEFT JOIN `api`.`token` ON `api`.`token`.`token_id` = `api`.`user`.`user_tokenid`
+                  WHERE 
+                     `api`.`user`.`user_email` = :email
+                  LIMIT 0,1
+                  ;
+               ", [":email" => $_GET['email']])->fetch(PDO::FETCH_ASSOC);
 
-               $_JSON_PRINT->success(); 
-               $_JSON_PRINT->response($results_print); 
-               $_JSON_PRINT->print();
+               if ($result && (password_verify($_GET['password'], $result['user_password']) || $_GET['password'] == $result['user_password']))
+               {         
+                  $_JSON_PRINT->success(); 
+                  $_JSON_PRINT->response(array
+                  (
+                     "user"      => array
+                     (
+                        'id'              => $result['user_id'],
+                        'password_hashed' => $result['user_password'],
+                     ),
+                     "token"     => array
+                     (
+                        'id'              => $result['user_tokenid'], 
+                        'access'          => json_decode($result['token_access'], true),
+                     )
+                  )); 
+                  $_JSON_PRINT->print();
+               }
+               else
+               {
+                  $_JSON_PRINT->fail("wrong credentials or account does not exist"); 
+                  $_JSON_PRINT->print();
+               }
 
-            break;
+            // break GET
+               break;
          }
       }
 ?>
