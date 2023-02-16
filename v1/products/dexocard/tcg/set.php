@@ -29,8 +29,6 @@
                      $_JSON_PRINT->print();
                   }
 
-                  $array_OperandsList = array("=", ">", "<", ">=", "<=", "LIKE");
-                  
                   foreach (json_decode($_GET['filters']) as $i => $item)
                   {
                      foreach ($item as $dataFilter)
@@ -42,7 +40,7 @@
                         array_push($_FILTERS_ACTIVE, $filter_Data);
 
                         // filtre les opérands inconnus
-                        if (!in_array($filter_Operand, $array_OperandsList))
+                        if (!in_array($filter_Operand, get_operand_array()))
                         {
                            $_JSON_PRINT->fail("unknow operand '$filter_Operand'"); 
                            $_JSON_PRINT->print();                                
@@ -112,7 +110,7 @@
                $_SQL    = $_MYSQL->connect(array("api"));
                foreach ($_SQL['api']->query
                (
-                  getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT), 
+                  getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT), 
                   $_ASSOCS_VARS
                )->fetchAll(PDO::FETCH_ASSOC) as $thisCard)
                {
@@ -145,7 +143,7 @@
             // Envoi des données
                $results_unfiltered = $_SQL['api']->query
                (
-                  getQuery_Cards($_FILTERS_ACTIVE, "COUNT(*) AS total_rows_unfiltered", $_BLOC_WHERE, NULL), 
+                  getQuery_Sets($_FILTERS_ACTIVE, "COUNT(*) AS total_rows_unfiltered", $_BLOC_WHERE, NULL), 
                   $_ASSOCS_VARS
                )->fetch(PDO::FETCH_ASSOC)['total_rows_unfiltered'];
 
@@ -153,7 +151,7 @@
                $_JSON_PRINT->addDataBefore('results_filters_count',  $results_unfiltered); 
                
                // debug
-               //$_SQL['api']->debug()->query(getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS);
+               //$_SQL['api']->debug()->query(getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS);
 
                $_JSON_PRINT->success(); 
                $_JSON_PRINT->response($results_print); 
@@ -163,7 +161,12 @@
          }
       }
 
-      function getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
+      /**
+
+      * @ignore
+
+      */
+      function getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
       {
          // Assemblage requête SQL
             return "

@@ -1,5 +1,6 @@
 <?php
    // check Token
+
       $_TOKEN->checkAccess('dexocard', 'tcg/card');
 
       switch (strtoupper($_METHOD))
@@ -21,10 +22,10 @@
                if (!empty($_GET['offset']))     { $_OFFSET  = intval($_GET['offset']); }                                      else { $_OFFSET = 0; }
                if (!empty($_GET['operand']))    { $_OPERAND = (strtolower($_GET['operand']) == 'or' ? "OR" : "AND"); }        else { $_OPERAND = "AND"; }
             
-            // Handles
-               if ($_LIMIT > 3000)
+            // Handles errors
+               if ($_LIMIT > 3000 || 0 >= $_LIMIT)
                {
-                  $_JSON_PRINT->fail("maximum limit is 3000"); 
+                  $_JSON_PRINT->fail("limit must set between 1 and 3000"); 
                   $_JSON_PRINT->print();
                }
                
@@ -36,8 +37,6 @@
                      $_JSON_PRINT->fail("filters is not in JSON format"); 
                      $_JSON_PRINT->print();
                   }
-
-                  $array_OperandsList = array("=", ">", "<", ">=", "<=", "LIKE");
                   
                   foreach (json_decode($_GET['filters']) as $i => $item)
                   {
@@ -50,7 +49,7 @@
                         array_push($_FILTERS_ACTIVE, $filter_Data);
 
                         // filtre les opérands inconnus
-                        if (!in_array($filter_Operand, $array_OperandsList))
+                        if (!in_array($filter_Operand, get_operand_array()))
                         {
                            $_JSON_PRINT->fail("unknow operand '$filter_Operand'"); 
                            $_JSON_PRINT->print();                                
@@ -66,13 +65,10 @@
                            case 'level':
                            case 'hp':
                            case 'supertype':
-                           case 'artist':
                            case 'rarity':
                            case 'rarity_simplified':
                            case 'rarity_index':
                            {
-                              if ($filter_Data == 'namefr') { $filter_Data = 'name_namefr'; }
-
                               $_BLOC_WHERE      = $_BLOC_WHERE . " `card_$filter_Data` $filter_Operand :$filter_Data" . "_$i $_OPERAND ";
                               $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":" . $filter_Data . "_" . $i => $filter_Value]);
 
@@ -190,8 +186,6 @@
 
                   ));
                }
-
-               //usort($results_print, fn($a, $b) => $a['id'] <=> $b['id']);
                array_multisort(array_column($results_print, 'id'), SORT_ASC, SORT_NATURAL, $results_print);
   
             // Envoi des données
@@ -214,6 +208,7 @@
             break;
          }
       }
+
 
       function getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
       {

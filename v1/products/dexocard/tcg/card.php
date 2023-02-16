@@ -21,12 +21,12 @@
                if (!empty($_GET['operand']))    { $_OPERAND = (strtolower($_GET['operand']) == 'or' ? "OR" : "AND"); }        else { $_OPERAND = "AND"; }
             
             // Handles
-               if ($_LIMIT > 3000)
-               {
-                  $_JSON_PRINT->fail("maximum limit is 3000"); 
-                  $_JSON_PRINT->print();
-               }
-               
+            if ($_LIMIT > 3000 || 0 >= $_LIMIT)
+            {
+               $_JSON_PRINT->fail("limit must set between 1 and 3000"); 
+               $_JSON_PRINT->print();
+            }
+            
             // Filtres
                if (!empty($_GET['filters']))
                {
@@ -36,8 +36,6 @@
                      $_JSON_PRINT->print();
                   }
 
-                  $array_OperandsList = array("=", ">", "<", ">=", "<=", "LIKE");
-                  
                   foreach (json_decode($_GET['filters']) as $i => $item)
                   {
                      foreach ($item as $dataFilter)
@@ -49,7 +47,7 @@
                         array_push($_FILTERS_ACTIVE, $filter_Data);
 
                         // filtre les opérands inconnus
-                        if (!in_array($filter_Operand, $array_OperandsList))
+                        if (!in_array($filter_Operand, get_operand_array()))
                         {
                            $_JSON_PRINT->fail("unknow operand '$filter_Operand'"); 
                            $_JSON_PRINT->print();                                
@@ -434,6 +432,11 @@
          }
       }
 
+      /**
+
+      * @ignore
+
+      */
       function getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
       {
          // Assemblage requête SQL

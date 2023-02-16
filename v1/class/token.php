@@ -66,16 +66,5 @@
 
          $this->_access = $result;
       }
-
-      function __construct()
-      {
-         $this->_access    = array
-         (
-            'dexocard'  => array
-            (
-               'get_tcgo_code'   => false,
-            ),
-         );
-      }
    }
 ?>

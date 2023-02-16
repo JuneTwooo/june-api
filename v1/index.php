@@ -39,7 +39,6 @@
       require_once($_CONFIG['ROOT'] . 'v1/error-handler.php');
       require_once($_CONFIG['ROOT'] . 'v1/functions.global.php');
 
-
    // Class
       $_JSON_PRINT   = new print_JSON();
       $_TOKEN        = new token();
@@ -53,6 +52,7 @@
       try
       {
          $_PRODUCT   = NULL;
+
          switch ($_SERVER['HTTP_HOST'])
          {
             case 'api.dexocard.com' : 
@@ -64,11 +64,20 @@
                   $_ROUTE->get('/v1/tcg/card/price',                    $_PRODUCT . 'tcg/card-price');
                   $_ROUTE->get('/v1/tcg/set',                           $_PRODUCT . 'tcg/set');
 
-               // TCGO (Online Game)
+               // TCG O
                   $_ROUTE->get('/v1/tcgo/code',                         $_PRODUCT . 'tcgo/code');
 
                break;
             }
+
+            case 'api.venet.cc' : 
+               {
+                  $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/admin/';
+   
+                  $_ROUTE->get('/v1/user/login',                          $_PRODUCT . 'user/login');
+   
+                  break;
+               }
 
             default:
             {
