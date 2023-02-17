@@ -74,7 +74,10 @@
                {
                   $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/admin/';
    
-                  $_ROUTE->get('/v1/user/login',                          $_PRODUCT . 'user/login');
+                  $_ROUTE->get('/v1/user/login',                        $_PRODUCT . 'user/login');
+
+                  $_ROUTE->get('/v1/token',                             $_PRODUCT . 'token/list');
+                  $_ROUTE->get('/v1/token/edit',                        $_PRODUCT . 'token/edit');
    
                   break;
                }

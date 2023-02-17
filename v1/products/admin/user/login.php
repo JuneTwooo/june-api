@@ -46,6 +46,7 @@
                      "user"      => array
                      (
                         'id'              => $result['user_id'],
+                        'admin_level'     => $result['user_admin_level'],
                         'password_hashed' => $result['user_password'],
                      ),
                      "token"     => array
