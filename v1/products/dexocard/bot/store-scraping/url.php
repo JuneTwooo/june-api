@@ -1,6 +1,7 @@
 <?php
    // check Token
-      $_TOKEN->checkAccess('dexocard', 'tcg/set');
+   echo 'ok';
+      $_TOKEN->checkAccess('dexocard', 'store-scraping/url');
 
       switch (strtoupper($_METHOD))
       {

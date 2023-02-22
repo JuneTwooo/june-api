@@ -1,4 +1,12 @@
 <?php
+	/*
+	
+		https://phprouter.com/
+
+		https://github.com/phprouter/main
+	
+	*/
+
 	class route
 	{		
    	public function get($route, $path_to_include)
@@ -15,6 +23,7 @@
          global $_LOG;
 			global $_PUBLIC_KEY;
 			global $_METHOD;
+			global $_TABLE_LIST;
 
 			$callback = $path_to_include;
 

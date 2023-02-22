@@ -30,16 +30,19 @@
                $response = array();
                foreach ($_SQL['api']->query
                (
-                  '
+                  "
                      SELECT 
-                        `tcg_code_code`,
-                        `tcg_code_setid`,
-                        `tcg_code_texte`,
-                        `tcg_code_dateadd`,
-                        `tcg_code_datechecked`
-                     FROM `tcg_code` 
-                     WHERE `tcg_code_dateused` IS NULL LIMIT :nb;
-                  ', 
+                        " . $_TABLE_LIST['dexocard'] . ".`tcg_code`.`tcg_code_code`,
+                        " . $_TABLE_LIST['dexocard'] . ".`tcg_code`.`tcg_code_setid`,
+                        " . $_TABLE_LIST['dexocard'] . ".`tcg_code`.`tcg_code_texte`,
+                        " . $_TABLE_LIST['dexocard'] . ".`tcg_code`.`tcg_code_dateadd`,
+                        " . $_TABLE_LIST['dexocard'] . ".`tcg_code`.`tcg_code_datechecked`
+                     FROM
+                        " . $_TABLE_LIST['dexocard'] . ".`tcg_code`
+                     WHERE
+                        " . $_TABLE_LIST['dexocard'] . ".`tcg_code`.`tcg_code_dateused` IS NULL
+                     LIMIT 0, :nb;
+                  ", 
                   [":nb" => $_NB]
                )->fetchAll(PDO::FETCH_ASSOC) as $itemSQL)
                {

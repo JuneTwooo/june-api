@@ -46,6 +46,13 @@
       $_LOG          = new logFile();
       $_MYSQL        = new MySQL();
 
+   // SQL Tables List
+      $_TABLE_LIST = array
+      (
+         'api'       => "api",
+         'dexocard'  => "tcg",
+      );
+
    // Routing selon l'HOST
       $_PUBLIC_KEY   = (empty($_SERVER['HTTP_AUTHORIZATION']) ? NULL : $_SERVER['HTTP_AUTHORIZATION']);
 
@@ -67,6 +74,10 @@
                // TCG O
                   $_ROUTE->get('/v1/tcgo/code',                         $_PRODUCT . 'tcgo/code');
 
+               // BOT
+                  $_ROUTE->get('/v1/bot/store-scraping/url',            $_PRODUCT . 'bot/store-scraping/url');
+
+
                break;
             }
 
@@ -77,7 +88,7 @@
                   $_ROUTE->get('/v1/user/login',                        $_PRODUCT . 'user/login');
 
                   $_ROUTE->get('/v1/token',                             $_PRODUCT . 'token/list');
-                  $_ROUTE->get('/v1/token/edit',                        $_PRODUCT . 'token/edit');
+                  $_ROUTE->get('/v1/token/$id/$access',                 $_PRODUCT . 'token/edit');
    
                   break;
                }

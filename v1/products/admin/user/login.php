@@ -23,20 +23,24 @@
                $_SQL = $_MYSQL->connect(array("api"));
 
             // Check email and password
-               $result = $_SQL['api']->query("
+               $result = $_SQL['api']->query
+               ("
                   SELECT 
-                     `api`.`user`.`user_id`,
-                     `api`.`user`.`user_password`,
-                     `api`.`user`.`user_tokenid`,
-                     `api`.`token`.token_access
+                  " . $_TABLE_LIST['api'] . ".`user`.`user_id`,
+                     " . $_TABLE_LIST['api'] . ".`user`.`user_password`,
+                     " . $_TABLE_LIST['api'] . ".`user`.`user_tokenid`,
+                     " . $_TABLE_LIST['api'] . ".`token`.token_access
                   FROM 
-                     `api`.`user`
-                  LEFT JOIN `api`.`token` ON `api`.`token`.`token_id` = `api`.`user`.`user_tokenid`
+                     " . $_TABLE_LIST['api'] . ".`user`
+                  LEFT JOIN " . $_TABLE_LIST['api'] . ".`token` ON " . $_TABLE_LIST['api'] . ".`token`.`token_id` =  " . $_TABLE_LIST['api'] . ".`user`.`user_tokenid`
                   WHERE 
-                     `api`.`user`.`user_email` = :email
+                     " . $_TABLE_LIST['api'] . ".`user`.`user_email` = :email
                   LIMIT 0,1
                   ;
-               ", [":email" => $_GET['email']])->fetch(PDO::FETCH_ASSOC);
+               ", 
+               [
+                  ":email" => $_GET['email']
+               ])->fetch(PDO::FETCH_ASSOC);
 
                if ($result && (password_verify($_GET['password'], $result['user_password']) || $_GET['password'] == $result['user_password']))
                {         
@@ -46,7 +50,6 @@
                      "user"      => array
                      (
                         'id'              => $result['user_id'],
-                        'admin_level'     => $result['user_admin_level'],
                         'password_hashed' => $result['user_password'],
                      ),
                      "token"     => array

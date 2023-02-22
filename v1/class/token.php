@@ -13,7 +13,7 @@
          global $_METHOD;
 
          // check super-admin
-            if (!empty($this->_access['_edit'][$_METHOD]))
+            if (!empty($this->_access['_edit']))
             {
                if ($this->_access['_edit'][$_METHOD]) { return true; }
             }
@@ -55,8 +55,8 @@
             {
                $_SQL          = $_MYSQL->connect(array("api"));
                $result        = $_SQL['api']->query("SELECT `token_access` FROM `api`.`token` WHERE `token_id` = :token_id;", [":token_id" => $this->_publicKey])->fetch(PDO::FETCH_ASSOC);   
-              
-               if (!isJson($result['token_access']))
+
+               if ($result && !isJson($result['token_access']))
                {
                   $_JSON_PRINT->fail("json format error in token access");
                   $_JSON_PRINT->print();   

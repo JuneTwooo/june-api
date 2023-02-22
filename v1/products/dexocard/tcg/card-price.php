@@ -88,57 +88,46 @@
             // Création requête SQL
                $_BLOC_SELECT =
                "
-                  `card_id`,
-                  `card_number`,
-                  `card_index`,
-                  `card_serieid`,
-                  `card_setid`,
-                  `card_level`,
-                  `card_hp`,
-                  `card_artist`,
-                  `card_rarity`,
-                  `card_raritySimplified`,
-                  `card_rarityIndex`,
-                  `card_supertype`,
-                  `card_convertedRetreatCost`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_id`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'dexId', `card_nationalDexId_DexId`
-                     )) FROM `card_nationalDexId` WHERE `card_nationalDexId_cardid` = `card_id`
-                  ) AS `card_nationalDexId`,
-
-                  (
-                     SELECT JSON_ARRAYAGG(JSON_OBJECT
-                     (
-                        'item_id', `card_prices_ItemId`,
-                        'title', `card_prices_Title`,
-                        'price', `card_prices_Price`,
-                        'variant', `card_prices_Type`
-                     )) FROM `card_price_ebay` 
+                        'item_id',     " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_ItemId`,
+                        'title',       " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Title`,
+                        'price',       " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Price`,
+                        'variant',     " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Type`
+                     ))
+                     FROM
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`
                      WHERE 
-                        `card_prices_CardId` = `card_id` AND 
-                        `card_prices_Sold` = 0 AND
-                        `card_prices_GraderId` IS NULL
-                     ORDER BY `card_prices_Price` ASC
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_CardId` = `card_id` AND 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Sold` = 0 AND
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_GraderId` IS NULL AND
+                        DATE_ADD(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_DateLastSeen`, INTERVAL 24 HOUR) >= NOW()
+                     ORDER BY
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Price` ASC
                   ) AS `ebay_prices_unsold_ungraded`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'item_id', `card_prices_ItemId`,
-                        'grader_id', `card_prices_GraderId`,
-                        'grade', `card_prices_Grade`,
-                        'title', `card_prices_Title`,
-                        'price', `card_prices_Price`,
-                        'variant', `card_prices_Type`
-                     )) FROM `card_price_ebay` 
+                        'item_id',     " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_ItemId`,
+                        'grader_id',   " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_GraderId`,
+                        'grade',       " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Grade`,
+                        'title',       " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Title`,
+                        'price',       " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Price`,
+                        'variant',     " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Type`
+                     ))
+                     FROM
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`
                      WHERE 
-                        `card_prices_CardId` = `card_id` AND 
-                        `card_prices_Sold` = 0 AND
-                        `card_prices_GraderId` IS NOT NULL
-                     ORDER BY `card_prices_Grade` ASC
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_CardId` = `card_id` AND 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Sold` = 0 AND
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_GraderId` IS NOT NULL AND
+                        DATE_ADD(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_DateLastSeen`, INTERVAL 24 HOUR) >= NOW()
+                     ORDER BY
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Grade` ASC
                   ) AS `ebay_prices_unsold_graded`
                ";
 
@@ -153,18 +142,28 @@
                {
                   $prices = array();
 
-                  $prices['sold_history'] = $_SQL['api']->query("
+                  $prices['sold_history'] = $_SQL['api']->query
+                  ("
                      SELECT 
-                        DATE(`card_prices_DateLastSeen`) as `date`,
+                        DATE(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_DateLastSeen`) as `date`,
                         COUNT(*) AS `count`,
-                        CAST(AVG(`card_prices_Price`) AS DECIMAL(10,2)) AS `avg`,
-                        CAST(MIN(`card_prices_Price`) AS DECIMAL(10,2)) AS `min`,
-                        CAST(MAX(`card_prices_Price`) AS DECIMAL(10,2)) AS `max`
-                     FROM `card_price_ebay` 
-                     WHERE `card_prices_CardId` = :card_id AND `card_prices_GraderId` IS NULL AND `card_prices_Sold` = 1 
-                     GROUP BY DATE(`card_prices_DateLastSeen`)
-                     ORDER BY `date` ASC;
-                  ", [":card_id" => $thisCard['card_id']])->fetchAll(PDO::FETCH_ASSOC);
+                        CAST(AVG(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Price`) AS DECIMAL(10,2)) AS `avg`,
+                        CAST(MIN(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Price`) AS DECIMAL(10,2)) AS `min`,
+                        CAST(MAX(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Price`) AS DECIMAL(10,2)) AS `max`
+                     FROM 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`
+                     WHERE 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_CardId` = :card_id AND
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_GraderId` IS NULL AND
+                        " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Sold` = 1 
+                     GROUP BY 
+                        DATE(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_DateLastSeen`)
+                     ORDER BY 
+                        `date` ASC;
+                  ",
+                  [
+                     ":card_id" => $thisCard['card_id']
+                  ])->fetchAll(PDO::FETCH_ASSOC);
 
                   array_push($results_print, array
                   (
@@ -212,6 +211,8 @@
 
       function getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
       {
+         global $_TABLE_LIST;
+         
          // Assemblage requête SQL
             return "
                SELECT 
@@ -225,11 +226,11 @@
 
                " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
 
-               ORDER BY `card_setid` ASC, `card_index` ASC
+               ORDER BY 
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_setid` ASC, 
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_index` ASC
 
                " . ($_BLOC_LIMIT ? $_BLOC_LIMIT : '') . "
-
-               
                ;
             ";
       }

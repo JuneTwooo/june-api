@@ -165,178 +165,219 @@
             // Création requête SQL
                $_BLOC_SELECT =
                "
-                  `card_id`,
-                  `card_number`,
-                  `card_index`,
-                  `card_serieid`,
-                  `card_setid`,
-                  `card_level`,
-                  `card_hp`,
-                  `card_artist`,
-                  `card_rarity`,
-                  `card_raritySimplified`,
-                  `card_rarityIndex`,
-                  `card_supertype`,
-                  `card_convertedRetreatCost`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_id`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_number`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_index`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_serieid`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_setid`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_level`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_hp`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`. `card_artist`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_rarity`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_raritySimplified`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_rarityIndex`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_supertype`,
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_convertedRetreatCost`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'FR', `card_name_nameFR`,
-                        'EN', `card_name_nameEN`
-                     )) FROM `card_name` WHERE `card_name_cardid` = `card_id` LIMIT 0,1
+                        'FR', " . $_TABLE_LIST['dexocard'] . ".`card_name`.`card_name_nameFR`,
+                        'EN', " . $_TABLE_LIST['dexocard'] . ".`card_name`.`card_name_nameEN`
+                     )) 
+                     FROM 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_name`
+                     WHERE 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_name`.`card_name_cardid` = `card_id` 
+                     LIMIT 0,1
                   ) AS `card_name`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'FR', `card_flavorText_flavorTextFR`,
-                        'EN', `card_flavorText_flavorTextEN`
-                     )) FROM `card_flavorText` WHERE `card_flavorText_cardid` = `card_id` LIMIT 0,1
+                        'FR', " . $_TABLE_LIST['dexocard'] . ".`card_flavorText`.`card_flavorText_flavorTextFR`,
+                        'EN', " . $_TABLE_LIST['dexocard'] . ".`card_flavorText`.`card_flavorText_flavorTextEN`
+                     )) 
+                     FROM 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_flavorText` 
+                     WHERE 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_flavorText`.`card_flavorText_cardid` = `card_id` 
+                     LIMIT 0,1
                   ) AS `card_flavorText`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'israinbow', `card_propriety_israinbow`,
-                        'isgold', `card_propriety_isgold`,
-                        'isblackgold', `card_propriety_isblackgold`,
-                        'isprime', `card_propriety_isprime`,
-                        'isescouade', `card_propriety_isescouade`,
-                        'isexmin', `card_propriety_isexmin`,
-                        'isEXmaj', `card_propriety_isEXmaj`,
-                        'isstar', `card_propriety_isstar`,
-                        'isdelta', `card_propriety_isdelta`,
-                        'isTURBO', `card_propriety_isTURBO`,
-                        'isGX', `card_propriety_isGX`,
-                        'isV', `card_propriety_isV`,
-                        'isVMAX', `card_propriety_isVMAX`,
-                        'isVSTAR', `card_propriety_isVSTAR`,
-                        'isLEGEND', `card_propriety_isLEGEND`,
-                        'isobscur', `card_propriety_isobscur`,
-                        'islumineux', `card_propriety_islumineux`,
-                        'isbrillant', `card_propriety_isbrillant`,
-                        'isnivx', `card_propriety_isnivx`,
-                        'ismega', `card_propriety_ismega`
-                     )) FROM `card_propriety` WHERE `card_propriety_cardid` = `card_id` LIMIT 0,1
+                        'israinbow',      " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_israinbow`,
+                        'isgold',         " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isgold`,
+                        'isblackgold',    " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isblackgold`,
+                        'isprime',        " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isprime`,
+                        'isescouade',     " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isescouade`,
+                        'isexmin',        " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isexmin`,
+                        'isEXmaj',        " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isEXmaj`,
+                        'isstar',         " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isstar`,
+                        'isdelta',        " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isdelta`,
+                        'isTURBO',        " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isTURBO`,
+                        'isGX',           " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isGX`,
+                        'isV',            " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isV`,
+                        'isVMAX',         " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isVMAX`,
+                        'isVSTAR',        " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isVSTAR`,
+                        'isLEGEND',       " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isLEGEND`,
+                        'isobscur',       " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isobscur`,
+                        'islumineux',     " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_islumineux`,
+                        'isbrillant',     " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isbrillant`,
+                        'isnivx',         " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_isnivx`,
+                        'ismega',         " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_ismega`
+                     )) 
+                     FROM 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_propriety`
+                     WHERE 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_propriety`.`card_propriety_cardid` = `card_id` 
+                     LIMIT 0,1
                   ) AS `card_property`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'name', `card_abilities_name`,
-                        'text', `card_abilities_text`,
-                        'type', `card_abilities_type`
-                     )) FROM `card_abilities` WHERE `card_abilities_cardid` = `card_id` AND `card_abilities_lang` = 'FR' LIMIT 0,1
+                        'name',  " . $_TABLE_LIST['dexocard'] . ".`card_abilities`.`card_abilities_name`,
+                        'text',  " . $_TABLE_LIST['dexocard'] . ".`card_abilities`.`card_abilities_text`,
+                        'type',  " . $_TABLE_LIST['dexocard'] . ".`card_abilities`.`card_abilities_type`
+                     )) 
+                     FROM 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_abilities`
+                     WHERE
+                        " . $_TABLE_LIST['dexocard'] . ".`card_abilities`.`card_abilities_cardid` = `card_id` AND 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_abilities`.`card_abilities_lang` = 'FR' 
+                     LIMIT 0,1
                   ) AS `card_abilities_FR`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'name',                 `card_abilities_name`,
-                        'text',                 `card_abilities_text`,
-                        'type',                 `card_abilities_type`
-                     )) FROM `card_abilities` WHERE `card_abilities_cardid` = `card_id` AND `card_abilities_lang` = 'EN' LIMIT 0,1
+                        'name',  " . $_TABLE_LIST['dexocard'] . ".`card_abilities`.`card_abilities_name`,
+                        'text',  " . $_TABLE_LIST['dexocard'] . ".`card_abilities`.`card_abilities_text`,
+                        'type',  " . $_TABLE_LIST['dexocard'] . ".`card_abilities`.`card_abilities_type`
+                     )) 
+                     FROM
+                        " . $_TABLE_LIST['dexocard'] . ".`card_abilities`
+                     WHERE 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_abilities`.`card_abilities_cardid` = `card_id` AND
+                        " . $_TABLE_LIST['dexocard'] . ".`card_abilities`.`card_abilities_lang` = 'EN'
+                     LIMIT 0,1
                   ) AS `card_abilities_EN`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'name',                 `card_attacks_name`,
-                        'text',                 `card_attacks_text`,
-                        'damage',               `card_attacks_damage`,
-                        'convertedEnergyCost',  `card_attacks_convertedEnergyCost`,
-                        'costtypeid1',          `card_attacks_costtypeid1`,
-                        'costtypeid2',          `card_attacks_costtypeid2`,
-                        'costtypeid3',          `card_attacks_costtypeid3`,
-                        'costtypeid4',          `card_attacks_costtypeid4`,
-                        'costtypeid5',          `card_attacks_costtypeid5`
-                     )) FROM `card_attacks` WHERE `card_attacks_cardid` = `card_id` AND `card_attacks_lang` = 'FR'
+                        'name',                    " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_name`,
+                        'text',                    " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_text`,
+                        'damage',                  " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_damage`,
+                        'convertedEnergyCost',     " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_convertedEnergyCost`,
+                        'costtypeid1',             " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_costtypeid1`,
+                        'costtypeid2',             " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_costtypeid2`,
+                        'costtypeid3',             " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_costtypeid3`,
+                        'costtypeid4',             " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_costtypeid4`,
+                        'costtypeid5',             " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_costtypeid5`
+                     ))
+                     FROM
+                        " . $_TABLE_LIST['dexocard'] . ".`card_attacks`
+                     WHERE
+                        " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_cardid` = `card_id` AND
+                        " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_lang` = 'FR'
                   ) AS `card_attacks_FR`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'name',                 `card_attacks_name`,
-                        'text',                 `card_attacks_text`,
-                        'damage',               `card_attacks_damage`,
-                        'convertedEnergyCost',  `card_attacks_convertedEnergyCost`,
-                        'costtypeid1',          `card_attacks_costtypeid1`,
-                        'costtypeid2',          `card_attacks_costtypeid2`,
-                        'costtypeid3',          `card_attacks_costtypeid3`,
-                        'costtypeid4',          `card_attacks_costtypeid4`,
-                        'costtypeid5',          `card_attacks_costtypeid5`
-                     )) FROM `card_attacks` WHERE `card_attacks_cardid` = `card_id` AND `card_attacks_lang` = 'EN'
+                        'name',                    " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_name`,
+                        'text',                    " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_text`,
+                        'damage',                  " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_damage`,
+                        'convertedEnergyCost',     " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_convertedEnergyCost`,
+                        'costtypeid1',             " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_costtypeid1`,
+                        'costtypeid2',             " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_costtypeid2`,
+                        'costtypeid3',             " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_costtypeid3`,
+                        'costtypeid4',             " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_costtypeid4`,
+                        'costtypeid5',             " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_costtypeid5`
+                     ))
+                     FROM
+                        " . $_TABLE_LIST['dexocard'] . ".`card_attacks`
+                     WHERE
+                        " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_cardid` = `card_id` AND
+                        " . $_TABLE_LIST['dexocard'] . ".`card_attacks`.`card_attacks_lang` = 'EN'
                   ) AS `card_attacks_EN`,
             
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'typeid', `card_types_typeid`
-                     )) FROM `card_types` WHERE `card_types_cardid` = `card_id`
+                        'typeid',   " . $_TABLE_LIST['dexocard'] . ".`card_types`.`card_types_typeid`
+                     ))
+                     FROM
+                        " . $_TABLE_LIST['dexocard'] . ".`card_types`
+                     WHERE 
+                        " . $_TABLE_LIST['dexocard'] . ".`card_types`.`card_types_cardid` = `card_id`
                   ) AS `card_types`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'typeid',   `card_weaknesses_typeid`,
-                        'value',    `card_weaknesses_value`
-                     )) FROM `card_weaknesses` WHERE `card_weaknesses_cardid` = `card_id`
+                        'typeid',   " . $_TABLE_LIST['dexocard'] . ".`card_weaknesses`.`card_weaknesses_typeid`,
+                        'value',    " . $_TABLE_LIST['dexocard'] . ".`card_weaknesses`.`card_weaknesses_value`
+                     ))
+                     FROM
+                        " . $_TABLE_LIST['dexocard'] . ".`card_weaknesses`
+                     WHERE
+                        " . $_TABLE_LIST['dexocard'] . ".`card_weaknesses`.`card_weaknesses_cardid` = `card_id`
                   ) AS `card_weaknesses`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'dexId', `card_nationalDexId_DexId`
-                     )) FROM `card_nationalDexId` WHERE `card_nationalDexId_cardid` = `card_id`
+                        'dexId',    " . $_TABLE_LIST['dexocard'] . ".`card_nationalDexId`.`card_nationalDexId_DexId`
+                     ))
+                     FROM
+                        " . $_TABLE_LIST['dexocard'] . ".`card_nationalDexId`
+                     WHERE
+                        " . $_TABLE_LIST['dexocard'] . ".`card_nationalDexId`.`card_nationalDexId_cardid` = `card_id`
                   ) AS `card_nationalDexId`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'highFR',      `card_images_imagesHighFR`,
-                        'highEN',      `card_images_imagesHighEN`,
-                        'smallFR',     `card_images_imagesSmallFR`,
-                        'smallEN',     `card_images_imagesSmallEN`,
-                        'hasRelief ',  `card_holo_HasRelief`,
-                        'lastUpdate',  `card_images_LastUpdate`
-                     )) FROM `card_images` WHERE `card_images_cardid` = `card_id`
+                        'highFR',         " . $_TABLE_LIST['dexocard'] . ".`card_images`.`card_images_imagesHighFR`,
+                        'highEN',         " . $_TABLE_LIST['dexocard'] . ".`card_images`.`card_images_imagesHighEN`,
+                        'smallFR',        " . $_TABLE_LIST['dexocard'] . ".`card_images`.`card_images_imagesSmallFR`,
+                        'smallEN',        " . $_TABLE_LIST['dexocard'] . ".`card_images`.`card_images_imagesSmallEN`,
+                        'hasRelief ',     " . $_TABLE_LIST['dexocard'] . ".`card_holo`.`card_holo_HasRelief`,
+                        'lastUpdate',     " . $_TABLE_LIST['dexocard'] . ".`card_images`.`card_images_LastUpdate`
+                     ))
+                     FROM
+                        " . $_TABLE_LIST['dexocard'] . ".`card_images`
+                     WHERE
+                        " . $_TABLE_LIST['dexocard'] . ".`card_images`.`card_images_cardid` = `card_id`
                   ) AS `card_image`,
 
                   JSON_OBJECT
                   (
-                     'normal',      `card_holo_NormalExist`,
-                     'holo',        IF(`card_holo_FullExist` IS NOT NULL, 1, `card_holo_HoloExist`),
-                     'reverse',     `card_holo_ReverseExist`
+                     'normal',      " . $_TABLE_LIST['dexocard'] . ".`card_holo`.`card_holo_NormalExist`,
+                     'holo',        IF(" . $_TABLE_LIST['dexocard'] . ".`card_holo`.`card_holo_FullExist` IS NOT NULL, 1, " . $_TABLE_LIST['dexocard'] . ".`card_holo`.`card_holo_HoloExist`),
+                     'reverse',     " . $_TABLE_LIST['dexocard'] . ".`card_holo`.`card_holo_ReverseExist`
                   ) AS `card_variant`,
 
                   (
                      SELECT (JSON_OBJECT
                      (
                         'count', count(*),
-                        'avg', CAST(avg(`card_prices_Price`) AS DECIMAL(10,2)), 
-                        'min', CAST(min(`card_prices_Price`) AS DECIMAL(10,2)), 
-                        'max', CAST(max(`card_prices_Price`) AS DECIMAL(10,2)))) FROM `card_price_ebay` WHERE `card_prices_CardId` = `card_id` AND `card_prices_Sold` = 1 AND date_sub(`card_prices_DateLastSeen`, INTERVAL 7 day)
-                  ) AS `price_stats_sold_28`,
+                        'avg', CAST(avg(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Price`) AS DECIMAL(10,2)), 
+                        'min', CAST(min(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Price`) AS DECIMAL(10,2)), 
+                        'max', CAST(max(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Price`) AS DECIMAL(10,2)))) 
 
-                  (
-                     SELECT (JSON_OBJECT
-                     (
-                        'count', count(*),
-                        'avg', CAST(avg(`card_prices_Price`) AS DECIMAL(10,2)), 
-                        'min', CAST(min(`card_prices_Price`) AS DECIMAL(10,2)), 
-                        'max', CAST(max(`card_prices_Price`) AS DECIMAL(10,2)))) FROM `card_price_ebay` WHERE `card_prices_CardId` = `card_id` and card_prices_Grader = 'PCA' AND card_prices_Grade = 10 AND `card_prices_Sold` = 1 AND date_sub(`card_prices_DateLastSeen`, INTERVAL 28 day)
-                  ) AS `price_stats_sold_28_PCA_10`,
-
-                  (
-                     SELECT (JSON_OBJECT
-                     (
-                        'count', count(*),
-                        'avg', CAST(avg(`card_prices_Price`) AS DECIMAL(10,2)), 
-                        'min', CAST(min(`card_prices_Price`) AS DECIMAL(10,2)), 
-                        'max', CAST(max(`card_prices_Price`) AS DECIMAL(10,2)))) FROM `card_price_ebay` WHERE `card_prices_CardId` = `card_id` and card_prices_Grader = 'PCA' AND card_prices_Grade = 9.5 AND `card_prices_Sold` = 1 AND date_sub(`card_prices_DateLastSeen`, INTERVAL 28 day)
-                  ) AS `price_stats_sold_28_PCA_95`
-
+                        FROM 
+                           " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`
+                        WHERE
+                           " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_CardId` = `card_id` AND 
+                           " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Sold` = 1 AND
+                           DATE_ADD(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_DateLastSeen`, INTERVAL 28 DAY) >= NOW()
+                  ) AS `price_stats_sold_ebay_28`
                ";
 
             // Formatage des données envoyées
@@ -398,11 +439,12 @@
 
                      'price_stats'        => array
                      (
-                        'sold'         => array
+                        'ebay'               => array
                         (
-                           'ungraded_28d' => (empty($thisCard['price_stats_sold_28']) ? NULL : json_decode($thisCard['price_stats_sold_28'], true)),
-                           'pca_10_28d' => (empty($thisCard['price_stats_sold_28_PCA_10']) ? NULL : json_decode($thisCard['price_stats_sold_28_PCA_10'], true)),
-                           'pca_95_28d' => (empty($thisCard['price_stats_sold_28_PCA_95']) ? NULL : json_decode($thisCard['price_stats_sold_28_PCA_95'], true)),
+                           'sold'               => array
+                           (
+                              '28d' => (empty($thisCard['price_stats_sold_ebay_28']) ? NULL : json_decode($thisCard['price_stats_sold_ebay_28'], true)),
+                           ),
                         ),
                      ),
                   ));
@@ -439,28 +481,25 @@
       */
       function getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
       {
+         global $_TABLE_LIST;
+
          // Assemblage requête SQL
             return "
                SELECT 
 
                " . $_BLOC_SELECT . "
 
-               FROM `card`
+               FROM " . $_TABLE_LIST['dexocard'] . ".`card`
 
-               LEFT JOIN `card_holo`            ON `card_holo_cardid`            = `card_id`
-
-               " . (in_array("pokemonid",       $_FILTERS_ACTIVE) ? "LEFT JOIN `card_nationalDexId`   ON `card_nationalDexId_cardid`      = `card_id`" : '') . "
-               " . (in_array("typeid",          $_FILTERS_ACTIVE) ? "LEFT JOIN `card_types`           ON `card_types_cardid`              = `card_id`" : '') . "
-               " . (in_array("ability",         $_FILTERS_ACTIVE) ? "LEFT JOIN `card_abilities`       ON `card_abilities_cardid`          = `card_id`" : '') . "
-               " . (in_array("capacity",        $_FILTERS_ACTIVE) ? "LEFT JOIN `card_attacks`         ON `card_attacks_cardid`            = `card_id`" : '') . "
+               LEFT JOIN " . $_TABLE_LIST['dexocard'] . ".`card_holo`   ON " . $_TABLE_LIST['dexocard'] . ".`card_holo`.`card_holo_cardid`            = `card_id`
 
                " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
 
-               ORDER BY `card_setid` ASC, `card_index` ASC
+               ORDER BY
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_setid` ASC, 
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_index` ASC
 
                " . ($_BLOC_LIMIT ? $_BLOC_LIMIT : '') . "
-
-               
                ;
             ";
       }
