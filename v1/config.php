@@ -5,6 +5,15 @@
         
         'ROOT'              => "/var/www/_api/",
 
+        'PRODUCTS'          => array
+        (
+            'DEXOCARD'          => array
+            (
+                'URL'               => 'https://www.dexocard.com/',
+                'RES'               => 'https://res.dexocard.com/'
+            ),
+        ),
+
         'TIMEZONE'          => "Europe/Paris",
 
         'PHPFASTCACHE'      => array
@@ -13,7 +22,7 @@
 
             'FILES'             => array
             (
-                'FOLDER'            => sys_get_temp_dir() . '/dexocard-dev/'
+                'FOLDER'            => sys_get_temp_dir() . '/api-dev/'
             ),
 
             'REDIS'             => array

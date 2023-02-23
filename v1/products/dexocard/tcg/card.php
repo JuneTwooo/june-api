@@ -165,43 +165,43 @@
             // Création requête SQL
                $_BLOC_SELECT =
                "
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_id`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_number`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_index`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_serieid`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_setid`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_level`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_hp`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card`. `card_artist`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_rarity`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_raritySimplified`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_rarityIndex`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_supertype`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_convertedRetreatCost`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`card`.`card_id`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`card`.`card_number`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`card`.`card_index`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`card`.`card_serieid`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`card`.`card_setid`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`card`.`card_level`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`card`.`card_hp`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`card`. `card_artist`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`card`.`card_rarity`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`card`.`card_raritySimplified`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`card`.`card_rarityIndex`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`card`.`card_supertype`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`card`.`card_convertedRetreatCost`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'FR', " . $_TABLE_LIST['dexocard'] . ".`card_name`.`card_name_nameFR`,
-                        'EN', " . $_TABLE_LIST['dexocard'] . ".`card_name`.`card_name_nameEN`
+                        'FR',    `" . $_TABLE_LIST['dexocard'] . "`.`card_name`.`card_name_nameFR`,
+                        'EN',    `" . $_TABLE_LIST['dexocard'] . "`.`card_name`.`card_name_nameEN`
                      )) 
                      FROM 
-                        " . $_TABLE_LIST['dexocard'] . ".`card_name`
+                        `" . $_TABLE_LIST['dexocard'] . "`.`card_name`
                      WHERE 
-                        " . $_TABLE_LIST['dexocard'] . ".`card_name`.`card_name_cardid` = `card_id` 
+                        `" . $_TABLE_LIST['dexocard'] . "`.`card_name`.`card_name_cardid` = `card_id` 
                      LIMIT 0,1
                   ) AS `card_name`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'FR', " . $_TABLE_LIST['dexocard'] . ".`card_flavorText`.`card_flavorText_flavorTextFR`,
-                        'EN', " . $_TABLE_LIST['dexocard'] . ".`card_flavorText`.`card_flavorText_flavorTextEN`
+                        'FR',    `" . $_TABLE_LIST['dexocard'] . "`.`card_flavorText`.`card_flavorText_flavorTextFR`,
+                        'EN',    `" . $_TABLE_LIST['dexocard'] . "`.`card_flavorText`.`card_flavorText_flavorTextEN`
                      )) 
                      FROM 
-                        " . $_TABLE_LIST['dexocard'] . ".`card_flavorText` 
+                        `" . $_TABLE_LIST['dexocard'] . "`.`card_flavorText` 
                      WHERE 
-                        " . $_TABLE_LIST['dexocard'] . ".`card_flavorText`.`card_flavorText_cardid` = `card_id` 
+                        `" . $_TABLE_LIST['dexocard'] . "`.`card_flavorText`.`card_flavorText_cardid` = `card_id` 
                      LIMIT 0,1
                   ) AS `card_flavorText`,
 

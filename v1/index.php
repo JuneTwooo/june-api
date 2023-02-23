@@ -67,15 +67,20 @@
                $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/dexocard/';
 
                // TCG
-                  $_ROUTE->get('/v1/tcg/card',                          $_PRODUCT . 'tcg/card');
-                  $_ROUTE->get('/v1/tcg/card/price',                    $_PRODUCT . 'tcg/card-price');
-                  $_ROUTE->get('/v1/tcg/set',                           $_PRODUCT . 'tcg/set');
+                  $_ROUTE->GET('/v1/tcg/card',                          $_PRODUCT . 'tcg/card');
+                  $_ROUTE->GET('/v1/tcg/card/price',                    $_PRODUCT . 'tcg/card-price');
+                  $_ROUTE->GET('/v1/tcg/set',                           $_PRODUCT . 'tcg/set');
 
                // TCG O
-                  $_ROUTE->get('/v1/tcgo/code',                         $_PRODUCT . 'tcgo/code');
+                  $_ROUTE->GET('/v1/tcgo/code',                         $_PRODUCT . 'tcgo/code');
+
+               // STORE
+                  $_ROUTE->GET('/v1/store/product',                     $_PRODUCT . 'store/product/product');
+                  $_ROUTE->GET('/v1/store/product/$id',                 $_PRODUCT . 'store/product/product');
+                  $_ROUTE->GET('/v1/store/product/detect',              $_PRODUCT . 'store/product/detect');
 
                // BOT
-                  $_ROUTE->get('/v1/bot/store-scraping/url',            $_PRODUCT . 'bot/store-scraping/url');
+                  $_ROUTE->GET('/v1/bot/store-scraping/url',            $_PRODUCT . 'bot/store-scraping/url');
 
 
                break;
@@ -85,11 +90,13 @@
                {
                   $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/admin/';
    
-                  $_ROUTE->get('/v1/user/login',                        $_PRODUCT . 'user/login');
+                  $_ROUTE->GET('/v1/user/login',                        $_PRODUCT . 'user/login');
 
-                  $_ROUTE->get('/v1/token',                             $_PRODUCT . 'token/list');
-                  $_ROUTE->get('/v1/token/$id/$access',                 $_PRODUCT . 'token/edit');
-   
+                  $_ROUTE->GET('/v1/token',                             $_PRODUCT . 'token/token');
+                  $_ROUTE->GET('/v1/token/$id',                         $_PRODUCT . 'token/token');
+                  $_ROUTE->POST('/v1/token',                            $_PRODUCT . 'token/token');
+                  $_ROUTE->PUT('/v1/token/$id/$access',                 $_PRODUCT . 'token/token');
+  
                   break;
                }
 

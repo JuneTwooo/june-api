@@ -12,7 +12,7 @@
       {
          $this->_state                       = 0;
          $this->_response                    = 0;
-         $this->_fail_raison                 = null;
+         $this->_fail_raison                 = "";
          $this->_additionalResponsesBefore   = array();
          $this->_additionalResponsesAfter    = array();
       }
@@ -33,7 +33,7 @@
 
          if (!empty($raison)) { $this->_fail_raison = $raison; }
 
-         $_LOG->write(2, 0, 'print_JSON->fail', $raison);
+         $_LOG->write(2, 0, 'print_JSON->fail', $this->_fail_raison);
       }
 
       public function addDataBefore($col, $val)
@@ -46,7 +46,7 @@
          array_push($this->_additionalResponsesAfter, array($col => $val));
       }
 
-      public function response($obj)
+      public function response($obj = array())
       {
          global $_LOG;
 

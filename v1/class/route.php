@@ -9,10 +9,10 @@
 
 	class route
 	{		
-   	public function get($route, $path_to_include)
-   	{
-			$this->route($route, $path_to_include);
-   	}
+   	public function GET($route, $path_to_include) 		{ $this->route($route, $path_to_include); }
+   	public function POST($route, $path_to_include) 		{ $this->route($route, $path_to_include); }
+   	public function PUT($route, $path_to_include) 		{ $this->route($route, $path_to_include); }
+   	public function DELETE($route, $path_to_include) 	{ $this->route($route, $path_to_include); }
 
 		private function route($route, $path_to_include)
 		{
@@ -91,6 +91,7 @@
 			} 
 			else
 			{
+				//echo $path_to_include;
 				if (file_exists($path_to_include))
 				{
 					include $path_to_include;
