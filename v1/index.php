@@ -7,7 +7,9 @@
 
    // Headers
       header("Access-Control-Allow-Origin: *");
-      header('Content-Type: application/json; charset=utf-8');
+      header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");
+      header("Access-Control-Allow-Headers: *");
+      header('Cache-Control: no-cache, must-revalidate');
 
    // HTTP Origins
       switch (empty($_SERVER['HTTP_ORIGIN']) ? 'no_origin' : $_SERVER['HTTP_ORIGIN'])
@@ -17,14 +19,27 @@
       }
 
    // GLOBALS
-      $_METHOD    = (empty($_SERVER['REQUEST_METHOD']) ? NULL : strtolower($_SERVER['REQUEST_METHOD']));
+      $_METHOD    = (empty($_SERVER['REQUEST_METHOD']) ? NULL : strtoupper($_SERVER['REQUEST_METHOD']));
       $_DATA_DEBUG = array();
 
-   // METHOD
-      if (!$_METHOD)
+   // CHECK METHOD HEADER OVERRIDE
+      if (!empty($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']))
       {
-         $_JSON_PRINT->fail("no correct method found");
-         $_JSON_PRINT->print();
+         $_METHOD = strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
+      }
+
+   // CHECK IS SET METHOD
+      switch ($_METHOD)
+      {
+         case 'GET'     : { break; }
+         case 'POST'    : { break; }
+         case 'PUT'     : { break; }
+         case 'DELETE'  : { break; }
+         default        :
+         {
+            $_JSON_PRINT->fail("no allowed method found");
+            $_JSON_PRINT->print();
+         }
       }
 
 	// CONFIG & INIT
@@ -67,38 +82,41 @@
                $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/dexocard/';
 
                // TCG
-                  $_ROUTE->GET('/v1/tcg/card',                          $_PRODUCT . 'tcg/card');
-                  $_ROUTE->GET('/v1/tcg/card/price',                    $_PRODUCT . 'tcg/card-price');
-                  $_ROUTE->GET('/v1/tcg/set',                           $_PRODUCT . 'tcg/set');
+                  $_ROUTE->GET('/v1/tcg/card',                                $_PRODUCT . 'tcg/card');
+                  $_ROUTE->GET('/v1/tcg/card/price',                          $_PRODUCT . 'tcg/card-price');
+                  $_ROUTE->GET('/v1/tcg/set',                                 $_PRODUCT . 'tcg/set');
 
                // TCG O
-                  $_ROUTE->GET('/v1/tcgo/code',                         $_PRODUCT . 'tcgo/code');
+                  $_ROUTE->GET('/v1/tcgo/code',                               $_PRODUCT . 'tcgo/code');
 
                // STORE
-                  $_ROUTE->GET('/v1/store/product',                     $_PRODUCT . 'store/product/product');
-                  $_ROUTE->GET('/v1/store/product/$id',                 $_PRODUCT . 'store/product/product');
-                  $_ROUTE->GET('/v1/store/product/detect',              $_PRODUCT . 'store/product/detect');
+                  $_ROUTE->GET('/v1/store/product/category',                  $_PRODUCT . 'store/product/category');
+                  $_ROUTE->GET('/v1/store/product/category/$id',              $_PRODUCT . 'store/product/category');
+                  $_ROUTE->GET('/v1/store/product/$id',                       $_PRODUCT . 'store/product/product');
+                  $_ROUTE->GET('/v1/store/product/detect',                    $_PRODUCT . 'store/product/detect');
+                  $_ROUTE->GET('/v1/store/product',                           $_PRODUCT . 'store/product/product');
+
 
                // BOT
-                  $_ROUTE->GET('/v1/bot/store-scraping/url',            $_PRODUCT . 'bot/store-scraping/url');
+                  $_ROUTE->GET('/v1/bot/store-scraping/url',                  $_PRODUCT . 'bot/store-scraping/url');
 
 
                break;
             }
 
             case 'api.venet.cc' : 
-               {
-                  $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/admin/';
-   
-                  $_ROUTE->GET('/v1/user/login',                        $_PRODUCT . 'user/login');
+            {
+               $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/admin/';
 
-                  $_ROUTE->GET('/v1/token',                             $_PRODUCT . 'token/token');
-                  $_ROUTE->GET('/v1/token/$id',                         $_PRODUCT . 'token/token');
-                  $_ROUTE->POST('/v1/token',                            $_PRODUCT . 'token/token');
-                  $_ROUTE->PUT('/v1/token/$id/$access',                 $_PRODUCT . 'token/token');
-  
-                  break;
-               }
+               $_ROUTE->GET('/v1/user/login',                        $_PRODUCT . 'user/login');
+
+               $_ROUTE->GET('/v1/token',                             $_PRODUCT . 'token/token');
+               $_ROUTE->GET('/v1/token/$id',                         $_PRODUCT . 'token/token');
+               $_ROUTE->POST('/v1/token',                            $_PRODUCT . 'token/token');
+               $_ROUTE->PUT('/v1/token/$id/$access',                 $_PRODUCT . 'token/token');
+
+               break;
+            }
 
             default:
             {

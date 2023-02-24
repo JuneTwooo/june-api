@@ -133,8 +133,8 @@
 
             // Formatage des données envoyées
                $results_print = array();
-               $_SQL    = $_MYSQL->connect(array("api"));
-               foreach ($_SQL['api']->query
+               $_SQL    = $_MYSQL->connect(array("dexocard"));
+               foreach ($_SQL['dexocard']->query
                (
                   getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),
                   $_ASSOCS_VARS
@@ -142,7 +142,7 @@
                {
                   $prices = array();
 
-                  $prices['sold_history'] = $_SQL['api']->query
+                  $prices['sold_history'] = $_SQL['dexocard']->query
                   ("
                      SELECT 
                         DATE(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_DateLastSeen`) as `date`,
@@ -188,7 +188,7 @@
                array_multisort(array_column($results_print, 'id'), SORT_ASC, SORT_NATURAL, $results_print);
   
             // Envoi des données
-               $results_unfiltered = $_SQL['api']->query
+               $results_unfiltered = $_SQL['dexocard']->query
                (
                   getQuery_Cards($_FILTERS_ACTIVE, "COUNT(*) AS total_rows_unfiltered", $_BLOC_WHERE, NULL), 
                   $_ASSOCS_VARS
@@ -198,7 +198,7 @@
                $_JSON_PRINT->addDataBefore('results_filters_count',  $results_unfiltered); 
                
                // debug
-               //$_SQL['api']->debug()->query(getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS); exit();
+               //$_SQL['dexocard']->debug()->query(getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS); exit();
 
                $_JSON_PRINT->success(); 
                $_JSON_PRINT->response($results_print); 

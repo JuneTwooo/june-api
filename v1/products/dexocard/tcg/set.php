@@ -19,6 +19,7 @@
                if (!empty($_GET['limit']))      { $_LIMIT      = intval($_GET['limit']);  }                                   else { $_LIMIT  = 10; }
                if (!empty($_GET['offset']))     { $_OFFSET     = intval($_GET['offset']); }                                   else { $_OFFSET = 0; }
                if (!empty($_GET['operand']))    { $_OPERAND    = (strtolower($_GET['operand']) == 'or' ? "OR " : "AND"); }    else { $_OPERAND = "AND"; }
+               if (!empty($_GET['order']))      { $_ORDER      = $_GET['order']; }                                            else { $_ORDER = "AND"; }
             
             // Filtres
                if (!empty($_GET['filters']))
@@ -110,10 +111,10 @@
                $results_print = array();
                
                // MySQL Connect
-               $_SQL    = $_MYSQL->connect(array("api"));
+               $_SQL    = $_MYSQL->connect(array("dexocard"));
 
                // Query
-               foreach ($_SQL['api']->query
+               foreach ($_SQL['dexocard']->query
                (
                   getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT), 
                   $_ASSOCS_VARS
@@ -127,14 +128,14 @@
 
                      'name'                     => array
                      (
-                        'FR' => (empty($thisCard['card_set_nameFR']) ? NULL : $thisCard['card_set_nameFR']), 
-                        'EN' => (empty($thisCard['card_set_nameEN']) ? NULL : $thisCard['card_set_nameEN']), 
+                        'fr' => (empty($thisCard['card_set_nameFR']) ? NULL : $thisCard['card_set_nameFR']), 
+                        'en' => (empty($thisCard['card_set_nameEN']) ? NULL : $thisCard['card_set_nameEN']), 
                      ),
 
                      'abrv'                     => array
                      (
-                        'FR' => (empty($thisCard['card_set_AbreviationFR']) ? NULL : $thisCard['card_set_AbreviationFR']), 
-                        'EN' => (empty($thisCard['card_set_AbreviationEN']) ? NULL : $thisCard['card_set_AbreviationEN']), 
+                        'fr' => (empty($thisCard['card_set_AbreviationFR']) ? NULL : $thisCard['card_set_AbreviationFR']), 
+                        'en' => (empty($thisCard['card_set_AbreviationEN']) ? NULL : $thisCard['card_set_AbreviationEN']), 
                      ),
 
                      'total_card'               => $thisCard['card_set_printedTotal'],
@@ -146,7 +147,7 @@
                }
   
             // Envoi des données
-               $results_unfiltered = $_SQL['api']->query
+               $results_unfiltered = $_SQL['dexocard']->query
                (
                   getQuery_Sets($_FILTERS_ACTIVE, "COUNT(*) AS total_rows_unfiltered", $_BLOC_WHERE, NULL), 
                   $_ASSOCS_VARS
@@ -156,7 +157,7 @@
                $_JSON_PRINT->addDataBefore('results_filters_count',  $results_unfiltered); 
                
                // debug
-               //$_SQL['api']->debug()->query(getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS);
+               //$_SQL['dexocard']->debug()->query(getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS);
 
                $_JSON_PRINT->success(); 
                $_JSON_PRINT->response($results_print); 
@@ -174,6 +175,8 @@
       function getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
       {
          global $_TABLE_LIST;
+
+         //$_BLOC_WHERE      = $_BLOC_WHERE . " `card_set_show` = 1 AND ";
 
          // Assemblage requête SQL
             return "

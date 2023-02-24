@@ -68,7 +68,7 @@
                            case 'artist':
                            case 'rarity':
                            case 'rarity_simplified':
-                           case 'rarity_index':
+                           case 'rarity_index': 
                            {
                               if ($filter_Data == 'namefr') { $filter_Data = 'name_namefr'; }
 
@@ -182,8 +182,8 @@
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'FR',    `" . $_TABLE_LIST['dexocard'] . "`.`card_name`.`card_name_nameFR`,
-                        'EN',    `" . $_TABLE_LIST['dexocard'] . "`.`card_name`.`card_name_nameEN`
+                        'fr',    `" . $_TABLE_LIST['dexocard'] . "`.`card_name`.`card_name_nameFR`,
+                        'en',    `" . $_TABLE_LIST['dexocard'] . "`.`card_name`.`card_name_nameEN`
                      )) 
                      FROM 
                         `" . $_TABLE_LIST['dexocard'] . "`.`card_name`
@@ -195,8 +195,8 @@
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'FR',    `" . $_TABLE_LIST['dexocard'] . "`.`card_flavorText`.`card_flavorText_flavorTextFR`,
-                        'EN',    `" . $_TABLE_LIST['dexocard'] . "`.`card_flavorText`.`card_flavorText_flavorTextEN`
+                        'fr',    `" . $_TABLE_LIST['dexocard'] . "`.`card_flavorText`.`card_flavorText_flavorTextFR`,
+                        'en',    `" . $_TABLE_LIST['dexocard'] . "`.`card_flavorText`.`card_flavorText_flavorTextEN`
                      )) 
                      FROM 
                         `" . $_TABLE_LIST['dexocard'] . "`.`card_flavorText` 
@@ -382,8 +382,8 @@
 
             // Formatage des données envoyées
                $results_print = array();
-               $_SQL    = $_MYSQL->connect(array("api"));
-               foreach ($_SQL['api']->query
+               $_SQL    = $_MYSQL->connect(array("dexocard"));
+               foreach ($_SQL['dexocard']->query
                (
                   getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT), 
                   $_ASSOCS_VARS
@@ -420,14 +420,14 @@
 
                      'abilities'          => array
                      (
-                        'FR' => (empty($thisCard['card_abilities_FR']) ? NULL : json_decode($thisCard['card_abilities_FR'], true)),
-                        'EN' => (empty($thisCard['card_abilities_EN']) ? NULL : json_decode($thisCard['card_abilities_EN'], true)),
+                        'fr' => (empty($thisCard['card_abilities_FR']) ? NULL : json_decode($thisCard['card_abilities_FR'], true)),
+                        'en' => (empty($thisCard['card_abilities_EN']) ? NULL : json_decode($thisCard['card_abilities_EN'], true)),
                      ),
 
                      'capacities'         => array
                      (
-                        'FR' => (empty($thisCard['card_attacks_FR']) ? NULL : json_decode($thisCard['card_attacks_FR'], true)),
-                        'EN' => (empty($thisCard['card_attacks_EN']) ? NULL : json_decode($thisCard['card_attacks_EN'], true)),
+                        'fr' => (empty($thisCard['card_attacks_FR']) ? NULL : json_decode($thisCard['card_attacks_FR'], true)),
+                        'en' => (empty($thisCard['card_attacks_EN']) ? NULL : json_decode($thisCard['card_attacks_EN'], true)),
                      ),
 
                      'propriety'          => (empty($thisCard['card_property']) ? NULL : json_decode($thisCard['card_property'], true)),
@@ -454,7 +454,7 @@
                array_multisort(array_column($results_print, 'id'), SORT_ASC, SORT_NATURAL, $results_print);
   
             // Envoi des données
-               $results_unfiltered = $_SQL['api']->query
+               $results_unfiltered = $_SQL['dexocard']->query
                (
                   getQuery_Cards($_FILTERS_ACTIVE, "COUNT(*) AS total_rows_unfiltered", $_BLOC_WHERE, NULL), 
                   $_ASSOCS_VARS
@@ -464,7 +464,7 @@
                $_JSON_PRINT->addDataBefore('results_filters_count',  $results_unfiltered); 
                
                // debug
-               //$_SQL['api']->debug()->query(getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS); exit();
+               //$_SQL['dexocard']->debug()->query(getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS); exit();
 
                $_JSON_PRINT->success(); 
                $_JSON_PRINT->response($results_print); 

@@ -15,13 +15,13 @@
          // check super-admin
             if (!empty($this->_access['_edit']))
             {
-               if ($this->_access['_edit'][$_METHOD]) { return true; }
+               if ($this->_access['_edit'][strtolower($_METHOD)]) { return true; }
             }
 
          // search response
             $access_response = (empty($this->_access[$product]) ? NULL : $this->_access[$product]);
             foreach (explode('/', $key) as $route) { $access_response = (empty($access_response[$route]) ? NULL : $access_response[$route]); }
-            if (empty($access_response[$_METHOD]))
+            if (empty($access_response[strtolower($_METHOD)]))
             {
                $_JSON_PRINT->fail("access denied"); 
                $_JSON_PRINT->print();

@@ -9,6 +9,7 @@
         (
             'DEXOCARD'          => array
             (
+                'ROOT'              => '/var/www/_res/dexocard/',
                 'URL'               => 'https://www.dexocard.com/',
                 'RES'               => 'https://res.dexocard.com/'
             ),
