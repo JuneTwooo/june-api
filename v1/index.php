@@ -92,10 +92,9 @@
                // STORE
                   $_ROUTE->GET('/v1/store/product/category',                  $_PRODUCT . 'store/product/category');
                   $_ROUTE->GET('/v1/store/product/category/$id',              $_PRODUCT . 'store/product/category');
-                  $_ROUTE->GET('/v1/store/product/$id',                       $_PRODUCT . 'store/product/product');
                   $_ROUTE->GET('/v1/store/product/detect',                    $_PRODUCT . 'store/product/detect');
+                  $_ROUTE->GET('/v1/store/product/$id',                       $_PRODUCT . 'store/product/product');
                   $_ROUTE->GET('/v1/store/product',                           $_PRODUCT . 'store/product/product');
-
 
                // BOT
                   $_ROUTE->GET('/v1/bot/store-scraping/url',                  $_PRODUCT . 'bot/store-scraping/url');

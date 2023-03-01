@@ -11,7 +11,7 @@
       function __construct()
       {
          $this->_state                       = 0;
-         $this->_response                    = 0;
+         $this->_response                    = null;
          $this->_fail_raison                 = "";
          $this->_additionalResponsesBefore   = array();
          $this->_additionalResponsesAfter    = array();
@@ -95,7 +95,7 @@
             $_BENCH_END_TIME = microtime(true);
             $results = array_merge($results, array('timestamp' => time()));
             if ($_CONFIG['DEBUG']) { $results = array_merge($results, array('debug' => $_DATA_DEBUG)); }
-            if ($_CONFIG['DEBUG']) { $results = array_merge($results, array('bench' =>  ($_BENCH_END_TIME - $_BENCH_START_TIME))); }
+            if ($_CONFIG['DEBUG']) { $results = array_merge($results, array('bench' =>  number_format($_BENCH_END_TIME - $_BENCH_START_TIME, 5, '.', ''))); }
 
          // Log Debug
             $_LOG->write(1, 0, 'print_JSON->print', serialize($results));

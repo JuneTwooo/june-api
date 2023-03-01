@@ -2,6 +2,11 @@
    // check Token
       $_TOKEN->checkAccess('admin', 'dexocard/product');
       
+   // use 
+      use Jenssegers\ImageHash\ImageHash;
+      use Jenssegers\ImageHash\Implementations\DifferenceHash;
+
+   // Switch METHOD   
       switch (strtoupper($_METHOD))
       {
          case 'GET':
@@ -24,6 +29,9 @@
                      FROM        `" . $_TABLE_LIST['dexocard'] . "`.`store_product`
                      WHERE
                         " . (empty($id) ? "1" : "`" . $_TABLE_LIST['dexocard'] . "`.`store_product`.`store_product_id` = '" . addslashes($id) . "'") . "
+                     ORDER BY 
+                        `store_product_datefirstrealease` DESC,
+                        `store_product_id` DESC
                      LIMIT :offset, :limit;
                   ", 
                   [
@@ -38,7 +46,7 @@
                      'id'                 => $itemSQL['store_product_id'],
                      'category_id'        => $itemSQL['store_product_categorieid'],
                      'set_id'             => $itemSQL['store_product_setid'],
-                     'year_first_print'   => $itemSQL['store_product_year_first_print'],
+                     'first_release'      => $itemSQL['store_product_datefirstrealease'],
                      'name'               => array
                      (
                         'fr'                 => $itemSQL['store_product_namefr'],
@@ -46,14 +54,23 @@
                      ),
                      'image'              => array
                      (
-                        'fr'                 => $itemSQL['store_product_imagefr'],
-                        'en'                 => $itemSQL['store_product_imageen']
+                        'fr'                 => array
+                        (
+                           'filename'           => $itemSQL['store_product_imagefr'],
+                           'phash'              => $itemSQL['store_product_imagefr_phash'],
+                        ),
+                        'en'                 => array
+                        (
+                           'filename'           => $itemSQL['store_product_imageen'],
+                           'phash'              => $itemSQL['store_product_imageen_phash'],
+                        ),
                      ),
                      'datetime_add'       => $itemSQL['store_product_datetime_add'],
                   ));
                }
 
 
+            // Print Results
                $_JSON_PRINT->success(); 
                $_JSON_PRINT->response($results_print);
                $_JSON_PRINT->print();
@@ -64,13 +81,6 @@
 
          case 'POST':
          {
-            // MySQL Connect
-               $_SQL          = $_MYSQL->connect(array("dexocard"));
-
-            // Get New ID
-               $_new_id  = $_SQL['dexocard']->insert("store_product", []);
-               $id = $_SQL['dexocard']->id();
-         
             // Check parameters
                if (empty(intval($id)))
                {
@@ -83,7 +93,14 @@
                   $_JSON_PRINT->fail("categoryid must be specified");
                   $_JSON_PRINT->print();                  
                }
+         
+            // MySQL Connect
+               $_SQL          = $_MYSQL->connect(array("dexocard"));
 
+            // Get New ID
+               $_new_id  = $_SQL['dexocard']->insert("store_product", []);
+               $id = $_SQL['dexocard']->id();
+         
             // MySQL Connect
                $_SQL          = $_MYSQL->connect(array("dexocard"));
                $_SQL_PRODUCT  = $_SQL['dexocard']->query("SELECT * FROM `" . $_TABLE_LIST['dexocard'] . "`.`store_product` WHERE store_product_id = :product_id", [":product_id" => $id])->fetch(PDO::FETCH_ASSOC);
@@ -122,20 +139,22 @@
                }
                   
             // Enregistrement SQL
+               $date = DateTime::createFromFormat('d/m/Y', $_GET['release']);
                $results = $_SQL['dexocard']->update("store_product", 
                [
-                  "store_product_categorieid"      => ($_GET['categoryid']),
-                  "store_product_setid"            => ($_GET['setid']),
-                  "store_product_namefr"           => (!empty($_GET['namefr'])         ? $_GET['namefr']          : NULL),
-                  "store_product_nameen"           => (!empty($_GET['nameen'])         ? $_GET['nameen']          : NULL),
-                  "store_product_imagefr"          => (!empty($filenameUploaded['fr']) ? $filenameUploaded['fr']  : $_SQL_PRODUCT['store_product_imagefr']),
-                  "store_product_imageen"          => (!empty($filenameUploaded['en']) ? $filenameUploaded['en']  : $_SQL_PRODUCT['store_product_imageen']),
-                  "store_product_year_first_print" => (!empty($_GET['year'])           ? $_GET['year']            : NULL),
+                  "store_product_categorieid"         => ($_GET['categoryid']),
+                  "store_product_setid"               => ($_GET['setid']),
+                  "store_product_namefr"              => (!empty($_GET['namefr'])         ? $_GET['namefr']          : NULL),
+                  "store_product_nameen"              => (!empty($_GET['nameen'])         ? $_GET['nameen']          : NULL),
+                  "store_product_imagefr"             => (!empty($filenameUploaded['fr']) ? $filenameUploaded['fr']  : $_SQL_PRODUCT['store_product_imagefr']),
+                  "store_product_imageen"             => (!empty($filenameUploaded['en']) ? $filenameUploaded['en']  : $_SQL_PRODUCT['store_product_imageen']),
+                  "store_product_datefirstrealease"   => (!empty($_GET['release'])        ? $date->format('Y-m-d')   : NULL),
                ],
                [
                   "store_product_id" => $id
                ]);
 
+            // Print Results
                $_JSON_PRINT->success(); 
                $_JSON_PRINT->response();
                $_JSON_PRINT->print();
@@ -173,6 +192,8 @@
 
             // Upload files
                   $filenameUploaded = array();
+                  $phash            = array();
+
                   foreach (array('fr', 'en') as $lang)
                   {
                      $filenameUploaded[$lang] = false;
@@ -192,26 +213,35 @@
                         }
                         else
                         {
+                           $hasher = new ImageHash(new DifferenceHash());
                            $filenameUploaded[$lang] = $uploadResult['filename'];
+                           $phash[$lang] = $hasher->hash($_CONFIG['PRODUCTS']['DEXOCARD']['ROOT'] . $uploadResult['filename'])->toHex();
+                           $phash[$lang] = hexdec($phash['fr']) . '';
+                           //echo number_format(($phash['fr']), 0, '', '');
+                           //exit();
                         }
                      }
                   }
                   
             // Enregistrement SQL
+               $date = DateTime::createFromFormat('d/m/Y', $_GET['release']);
                $results = $_SQL['dexocard']->update("store_product", 
                [
-                  "store_product_categorieid"      => ($_GET['categoryid']),
-                  "store_product_setid"            => ($_GET['setid']),
-                  "store_product_namefr"           => (!empty($_GET['namefr'])         ? $_GET['namefr']          : NULL),
-                  "store_product_nameen"           => (!empty($_GET['nameen'])         ? $_GET['nameen']          : NULL),
-                  "store_product_imagefr"          => (!empty($filenameUploaded['fr']) ? $filenameUploaded['fr']  : $_SQL_PRODUCT['store_product_imagefr']),
-                  "store_product_imageen"          => (!empty($filenameUploaded['en']) ? $filenameUploaded['en']  : $_SQL_PRODUCT['store_product_imageen']),
-                  "store_product_year_first_print" => (!empty($_GET['year'])           ? $_GET['year']            : NULL),
+                  "store_product_categorieid"         => ($_GET['categoryid']),
+                  "store_product_setid"               => ($_GET['setid']),
+                  "store_product_namefr"              => (!empty($_GET['namefr'])         ? $_GET['namefr']          : NULL),
+                  "store_product_nameen"              => (!empty($_GET['nameen'])         ? $_GET['nameen']          : NULL),
+                  "store_product_imagefr"             => (!empty($filenameUploaded['fr']) ? $filenameUploaded['fr']  : $_SQL_PRODUCT['store_product_imagefr']),
+                  "store_product_imagefr_phash"       => (!empty($phash['fr'])            ? $phash['fr']             : $_SQL_PRODUCT['store_product_imagefr_phash']),
+                  "store_product_imageen"             => (!empty($filenameUploaded['en']) ? $filenameUploaded['en']  : $_SQL_PRODUCT['store_product_imageen']),
+                  "store_product_imageen_phash"       => (!empty($phash['en'])            ? $phash['en']             : $_SQL_PRODUCT['store_product_imageen_phash']),
+                  "store_product_datefirstrealease"   => (!empty($_GET['release'])        ? $date->format('Y-m-d')   : NULL),
                ],
                [
                   "store_product_id" => $id
                ]);
 
+            // Print Results
                $_JSON_PRINT->success(); 
                $_JSON_PRINT->response();
                $_JSON_PRINT->print();

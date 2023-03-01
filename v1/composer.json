@@ -1,6 +1,7 @@
 {
     "require": {
         "phpfastcache/phpfastcache": "^9.1",
-        "catfan/medoo": "^2.1"
+        "catfan/medoo": "^2.1",
+        "jenssegers/imagehash": "^0.8.0"
     }
 }

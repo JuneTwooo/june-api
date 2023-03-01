@@ -26,7 +26,7 @@
                   `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_id`,
                   `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_storeid`,
                   `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_usetor`,
-                  `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_product_type`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_categorieid`,
                   `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_javascript`,
                   `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_url`,
                   `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_lastupdate`
@@ -48,6 +48,8 @@
                   array_push($results_print, array
                   (
                      'id'                       => $thisCard['store_url_id'],
+                     'categoryid'               => $thisCard['store_url_categorieid'],
+                     'usetor'                   => $thisCard['store_url_usetor'],
                      'url'                      => $thisCard['store_url_url'],
                      'javascript'               => $thisCard['store_url_javascript'],
                   ));

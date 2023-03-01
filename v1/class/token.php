@@ -23,7 +23,7 @@
             foreach (explode('/', $key) as $route) { $access_response = (empty($access_response[$route]) ? NULL : $access_response[$route]); }
             if (empty($access_response[strtolower($_METHOD)]))
             {
-               $_JSON_PRINT->fail("access denied"); 
+               $_JSON_PRINT->fail(403); 
                $_JSON_PRINT->print();
             }
 
