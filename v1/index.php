@@ -68,9 +68,15 @@
          'dexocard'  => "tcg",
       );
 
+   // Paramètres _GET, _POST => _PARAM
+      $_PARAM = array();
+      foreach ($_GET as $key => $param)   { $_PARAM[$key] = $param; }
+      foreach ($_POST as $key => $param)  { $_PARAM[$key] = $param; }
+   
    // Routing selon l'HOST
       $_PUBLIC_KEY   = (empty($_SERVER['HTTP_AUTHORIZATION']) ? NULL : $_SERVER['HTTP_AUTHORIZATION']);
 
+   // Routes
       try
       {
          $_PRODUCT   = NULL;
@@ -82,19 +88,23 @@
                $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/dexocard/';
 
                // TCG
-                  $_ROUTE->GET('/v1/tcg/card',                                $_PRODUCT . 'tcg/card');
-                  $_ROUTE->GET('/v1/tcg/card/price',                          $_PRODUCT . 'tcg/card-price');
-                  $_ROUTE->GET('/v1/tcg/set',                                 $_PRODUCT . 'tcg/set');
+                  $_ROUTE->GET('/v1/tcg/card',                                   $_PRODUCT . 'tcg/card');
+                  $_ROUTE->GET('/v1/tcg/card/price',                             $_PRODUCT . 'tcg/card-price');
+                  $_ROUTE->GET('/v1/tcg/set',                                    $_PRODUCT . 'tcg/set');
 
                // TCG O
-                  $_ROUTE->GET('/v1/tcgo/code',                               $_PRODUCT . 'tcgo/code');
+                  $_ROUTE->GET('/v1/tcgo/code',                                  $_PRODUCT . 'tcgo/code');
 
                // STORE
-                  $_ROUTE->GET('/v1/store/product/category',                  $_PRODUCT . 'store/product/category');
-                  $_ROUTE->GET('/v1/store/product/category/$id',              $_PRODUCT . 'store/product/category');
-                  $_ROUTE->GET('/v1/store/product/detect',                    $_PRODUCT . 'store/product/detect');
-                  $_ROUTE->GET('/v1/store/product/$id',                       $_PRODUCT . 'store/product/product');
-                  $_ROUTE->GET('/v1/store/product',                           $_PRODUCT . 'store/product/product');
+                  $_ROUTE->GET('/v1/store',                                      $_PRODUCT . 'store/store');
+
+                  // Product
+                     $_ROUTE->GET('/v1/store/product/category',                  $_PRODUCT . 'store/product/category');
+                     $_ROUTE->GET('/v1/store/product/detect',                    $_PRODUCT . 'store/product/detect');
+                     $_ROUTE->GET('/v1/store/product',                           $_PRODUCT . 'store/product/product');
+
+                  // Item
+                     $_ROUTE->GET('/v1/store/item',                              $_PRODUCT . 'store/item/item');
 
                // BOT
                   $_ROUTE->GET('/v1/bot/store-scraping/url',                  $_PRODUCT . 'bot/store-scraping/url');
@@ -127,6 +137,6 @@
       catch (Throwable $e) { exceptions_error_handler(0, $e->getMessage(), $e->getFile(), $e->getLine()); }
 
    // 404
-      $_JSON_PRINT->fail("unknow endpoint or no method for this endpoint");
+      $_JSON_PRINT->fail("unknow endpoint or no method for this endpoint (" . filter_var($_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL) . ")");
       $_JSON_PRINT->print();
 ?>

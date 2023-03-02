@@ -42,7 +42,7 @@
       // slashes
          $dir_Base      = '/' . $dir_Base . '/';
          $dir_Target    = '/' . $dir_Target . '/';
-         $file_Target   = '/' . $file_Target;
+         $file_Target   = '/' . strtolower($file_Target);
 
       // Check filesize
          if ($_FILE['size'] >= 14000000)

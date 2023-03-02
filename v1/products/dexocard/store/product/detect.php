@@ -9,19 +9,6 @@
             // Check parameters
                if (empty($_GET['maxdistance']))       { $_GET['maxdistance'] = 20; }      else { $_GET['maxdistance'] = intval($_GET['maxdistance']); }
 
-            // id l'item (MD5 de l'URL)
-               if (empty($_GET['id']))
-               {
-                  $_JSON_PRINT->fail("id of item is missing");
-                  $_JSON_PRINT->print();
-               }
-
-            // Nom de l'item
-               if (empty($_GET['name']))
-               {
-                  $_JSON_PRINT->fail("name of item is missing");
-                  $_JSON_PRINT->print();
-               }
 
             // PHASH de l'image
                if (empty($_GET['phash']))
@@ -31,8 +18,9 @@
                }
 
             // Recherche du phash le plus proche
+               $results_print = array();
                $_SQL    = $_MYSQL->connect(array("dexocard"));
-               $itemSQL = $_SQL['dexocard']->query(
+               foreach ($_SQL['dexocard']->query(
                "
                   SELECT 
                      *, 
@@ -42,18 +30,19 @@
                   " . (!empty($_GET['categoryid']) ? "WHERE `store_product_categorieid` = " . intval($_GET['categoryid']) : "") . "
                   HAVING
                      `phash_distance` <= :max_distance
+                  ORDER BY 
+                     `phash_distance` ASC
                   ;
                ",
                [
-                  ":phash_int"      => hexdec($_GET['phash']),
+                  ":phash_int"      => number_format(hexdec($_GET['phash']), 0, '', ''),
                   ":max_distance"   => $_GET['maxdistance'],
-               ])->fetch(PDO::FETCH_ASSOC);
-
-               $results_print = null;
-               if ($itemSQL)
+               ]
+               )->fetchAll(PDO::FETCH_ASSOC) as $itemSQL)
                {
-                  $results_print = array
+                  array_push($results_print, array
                   (
+                     'phash_distance'     => $itemSQL['phash_distance'],
                      'id'                 => $itemSQL['store_product_id'],
                      'category_id'        => $itemSQL['store_product_categorieid'],
                      'set_id'             => $itemSQL['store_product_setid'],
@@ -77,8 +66,7 @@
                         ),
                      ),
                      'datetime_add'       => $itemSQL['store_product_datetime_add'],
-                     'phash_distance'     => $itemSQL['phash_distance'],
-                  );
+                  ));
                }
 
             // Print Results

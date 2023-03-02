@@ -2,6 +2,8 @@
    // check Token
       $_TOKEN->checkAccess('dexocard', 'store-scraping/url');
 
+      use Medoo\Medoo;
+
       switch (strtoupper($_METHOD))
       {
          case 'GET':
@@ -16,9 +18,19 @@
             $_ASSOCS_VARS     = array();
 
             // Defaults vars
-               $_OFFSET = 0;
-               $_LIMIT  = 1;
-               if (!empty($_GET['store_url_usetor']))       { $_USER_TOR      = 1;  }        else { $_USER_TOR    = 0; }
+               $_OFFSET = (empty($_PARAM['offset']) ? 0 : intval($_PARAM['offset']));
+               $_LIMIT  = (empty($_PARAM['limit']) ? 1 : intval($_PARAM['limit']));
+               if (!empty($_PARAM['storeid']))
+               {
+                  $_BLOC_WHERE      = $_BLOC_WHERE . " `store_url_storeid` = " . intval($_PARAM['storeid']) . " AND";
+               }
+               if (!empty($_PARAM['id']))
+               {
+                  $_BLOC_WHERE      = $_BLOC_WHERE . " `store_url_id` = " . intval($_PARAM['id']) . " AND";
+               }
+
+
+               if (!empty($_PARAM['store_url_usetor']))       { $_USER_TOR      = 1;  }        else { $_USER_TOR    = 0; }
             
             // Création requête SQL
                $_BLOC_SELECT =
@@ -36,10 +48,10 @@
                $results_print = array();
                
                // MySQL Connect
-               $_SQL    = $_MYSQL->connect(array("api"));
+               $_SQL    = $_MYSQL->connect(array("dexocard"));
 
                // Query
-               foreach ($_SQL['api']->query
+               foreach ($_SQL['dexocard']->query
                (
                   getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT), 
                   $_ASSOCS_VARS
@@ -48,15 +60,29 @@
                   array_push($results_print, array
                   (
                      'id'                       => $thisCard['store_url_id'],
+                     'storeid'                  => $thisCard['store_url_storeid'],
                      'categoryid'               => $thisCard['store_url_categorieid'],
                      'usetor'                   => $thisCard['store_url_usetor'],
                      'url'                      => $thisCard['store_url_url'],
                      'javascript'               => $thisCard['store_url_javascript'],
+                     'date_lastupdate'          => $thisCard['store_url_lastupdate'],
                   ));
+               }
+
+            // Update : `store_url_lastupdate`
+               if (empty($_PARAM['id']) && empty($_PARAM['storeid']))
+               {
+                  $results = $_SQL['dexocard']->update("store_url", 
+                  [
+                     "store_url_lastupdate"   => Medoo::raw('NOW()'),
+                  ],
+                  [
+                     "store_url_id" => $results_print[0]['id']
+                  ]);
                }
   
             // Envoi des données
-               $results_unfiltered = $_SQL['api']->query
+               $results_unfiltered = $_SQL['dexocard']->query
                (
                   getQuery_Sets($_FILTERS_ACTIVE, "COUNT(*) AS total_rows_unfiltered", $_BLOC_WHERE, NULL), 
                   $_ASSOCS_VARS
@@ -66,7 +92,7 @@
                $_JSON_PRINT->addDataBefore('results_filters_count',  $results_unfiltered); 
                
                // debug
-               //$_SQL['api']->debug()->query(getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS);
+               //$_SQL['dexocard']->debug()->query(getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS);
 
                $_JSON_PRINT->success(); 
                $_JSON_PRINT->response($results_print); 
@@ -76,11 +102,6 @@
          }
       }
 
-      /**
-
-      * @ignore
-
-      */
       function getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
       {
          global $_TABLE_LIST;

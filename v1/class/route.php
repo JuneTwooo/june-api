@@ -18,12 +18,13 @@
 		{
 			global $_CONFIG;
 			global $_JSON_PRINT;
-         	global $_TOKEN;
-         	global $_MYSQL;
-         	global $_LOG;
+         global $_TOKEN;
+         global $_MYSQL;
+         global $_LOG;
 			global $_PUBLIC_KEY;
 			global $_METHOD;
 			global $_TABLE_LIST;
+			global $_PARAM;
 
 			$callback = $path_to_include;
 
