@@ -7,7 +7,8 @@
          case 'GET':
          {
             // Check parameters
-               if (empty($_GET['maxdistance']))       { $_GET['maxdistance'] = 20; }      else { $_GET['maxdistance'] = intval($_GET['maxdistance']); }
+               if (empty($_GET['limit']))             { $_GET['limit'] = 10; }            else { $_GET['limit']         = intval($_GET['limit']); }
+               if (empty($_GET['offset']))            { $_GET['offset'] = 0; }            else { $_GET['offset']        = intval($_GET['offset']); }
 
 
             // PHASH de l'image
@@ -23,20 +24,20 @@
                foreach ($_SQL['dexocard']->query(
                "
                   SELECT 
-                     *, 
+                     *,
                      BIT_COUNT(:phash_int^ `store_product_imagefr_phash`) as `phash_distance`
                   FROM 
                      " . $_TABLE_LIST['dexocard'] . ".`store_product`
                   " . (!empty($_GET['categoryid']) ? "WHERE `store_product_categorieid` = " . intval($_GET['categoryid']) : "") . "
-                  HAVING
-                     `phash_distance` <= :max_distance
                   ORDER BY 
                      `phash_distance` ASC
+                  LIMIT :offset, :limit
                   ;
                ",
                [
                   ":phash_int"      => number_format(hexdec($_GET['phash']), 0, '', ''),
-                  ":max_distance"   => $_GET['maxdistance'],
+                  ":offset"         => $_GET['offset'],
+                  ":limit"          => $_GET['limit'],
                ]
                )->fetchAll(PDO::FETCH_ASSOC) as $itemSQL)
                {

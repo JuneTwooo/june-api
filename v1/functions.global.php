@@ -109,6 +109,10 @@
                      $finalName  = $dir_Target . $image_filename;
                      $finalName  = preg_replace('#/+#','/', $finalName);
 
+                     $img_RemoveWhiteBG = imagecreatefromwebp($dir_Base . $dir_Target . $image_filename);
+                     $img_RemoveWhiteBG = imagecropauto($img_RemoveWhiteBG, IMG_CROP_WHITE);
+                     imagewebp($img_RemoveWhiteBG, $dir_Base . $dir_Target . $image_filename);
+
                      return array('success' => 1, 'filename' => $finalName);
                   }
                }
@@ -122,6 +126,8 @@
 
    function cleanTitleURL($title, $maxLength = 20)
    {
+      $title = str_replace(' ', '-', $title);
+      $title = str_replace('--', '-', $title);
       return substr(preg_replace("/[^A-Za-z0-9 ]/", '-', $title), 0, 19);
    }
 ?>

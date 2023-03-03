@@ -30,7 +30,8 @@
                   `" . $_TABLE_LIST['dexocard'] . "`.`store`.`store_name`,
                   `" . $_TABLE_LIST['dexocard'] . "`.`store`.`store_url`,
                   `" . $_TABLE_LIST['dexocard'] . "`.`store`.`store_icon`,
-                  `" . $_TABLE_LIST['dexocard'] . "`.`store`.`store_code`
+                  `" . $_TABLE_LIST['dexocard'] . "`.`store`.`store_code`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`store`.`store_code_reduction`
                ";
 
             // Formatage des données envoyées
@@ -53,6 +54,7 @@
                         'url'               => $thisCard['store_url'],
                         'icon'              => $thisCard['store_icon'],
                         'code'              => $thisCard['store_code'],
+                        'code_percent'      => $thisCard['store_code_reduction'],
                     ));
                 }
 
@@ -126,9 +128,11 @@
 
             // Columns to update
                $update_cols = array();
-               if (!empty($_PARAM['name']))           { $update_cols = array_merge($update_cols, ["store_name"          => $_PARAM['name']]); }
-               if (!empty($_PARAM['url']))            { $update_cols = array_merge($update_cols, ["store_url"           => $_PARAM['url']]); }
-               if (!empty($filenameUploaded))         { $update_cols = array_merge($update_cols, ["store_icon"          => $filenameUploaded]); }
+               if (!empty($_PARAM['name']))           { $update_cols = array_merge($update_cols, ["store_name"             => $_PARAM['name']]); }
+               if (!empty($_PARAM['url']))            { $update_cols = array_merge($update_cols, ["store_url"              => $_PARAM['url']]); }
+               if (!empty($_PARAM['code']))           { $update_cols = array_merge($update_cols, ["store_code"             => $_PARAM['code']]); }
+               if (!empty($_PARAM['code_percent']))   { $update_cols = array_merge($update_cols, ["store_code_reduction"   => $_PARAM['code_percent']]); }
+               if (!empty($filenameUploaded))         { $update_cols = array_merge($update_cols, ["store_icon"             => $filenameUploaded]); }
 
             // Enregistrement SQL
                if (!$update_cols)

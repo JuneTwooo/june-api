@@ -100,6 +100,92 @@
 
             break;
          }
+
+         case 'POST':
+         case 'PUT':
+         {
+            // Defaults vars
+               if (empty(intval($_PARAM['id']))) { $_JSON_PRINT->fail("id must be specified"); $_JSON_PRINT->print(); }
+             
+            // MySQL Connect
+               $_SQL          = $_MYSQL->connect(array("dexocard"));
+     
+            // Get New ID if id=-1
+               if ($_PARAM['id'] == -1 && !empty($_PARAM['storeid']))
+               {
+                  $_SQL['dexocard']->insert("store_url", ["store_url_storeid" => $_PARAM['storeid']]);
+                  $_PARAM['id'] = $_SQL['dexocard']->id();
+               }
+
+            // Get URL info from SQL
+               $_SQL_URL  = $_SQL['dexocard']->query("SELECT * FROM `" . $_TABLE_LIST['dexocard'] . "`.`store_url` WHERE store_url_id = :url_id", [":url_id" => $_PARAM['id']])->fetch(PDO::FETCH_ASSOC);
+            
+            // Recherche si URL existe
+               if (empty($_SQL_URL['store_url_id']))
+               {
+                  $_JSON_PRINT->fail("store id not found");
+                  $_JSON_PRINT->print();                                   
+               }
+
+            // Columns to update
+               $update_cols = array();
+               if (!empty($_PARAM['url']))                  { $update_cols = array_merge($update_cols, ["store_url_url"                => $_PARAM['url']]); }
+               if (!empty($_PARAM['categoryid']))           { $update_cols = array_merge($update_cols, ["store_url_categorieid"        => $_PARAM['categoryid']]); }
+               if (!empty($_PARAM['usetor']))               { $update_cols = array_merge($update_cols, ["store_url_usetor"             => $_PARAM['usetor']]); }
+               if (!empty($_PARAM['javascript']))           { $update_cols = array_merge($update_cols, ["store_url_javascript"         => $_PARAM['javascript']]); }
+
+            // Enregistrement SQL
+               if (!$update_cols)
+               {
+                  $_JSON_PRINT->fail("no data to update"); $_JSON_PRINT->print();
+               }
+
+               $_SQL          = $_MYSQL->connect(array("dexocard"));
+               
+               $results = $_SQL['dexocard']->update("store_url", $update_cols,
+               [
+                  "store_url_id" => $_PARAM['id']
+               ]);
+
+            // Print Results
+               $_JSON_PRINT->success(); 
+               $_JSON_PRINT->response();
+               $_JSON_PRINT->print();           
+
+            break;
+         }
+
+         case 'DELETE':
+         {
+            // Defaults vars
+               if (empty(intval($_PARAM['id']))) { $_JSON_PRINT->fail("id must be specified"); $_JSON_PRINT->print(); }
+             
+            // MySQL Connect
+               $_SQL          = $_MYSQL->connect(array("dexocard"));
+
+            // Query SQL
+               $result = $_SQL['dexocard']->delete
+               (
+                  "store_url",
+                  [
+                     "store_url_id" => $_GET['id'],
+                  ]
+               );
+
+            // Print Result
+               if (!empty($result))
+               {
+                  $_JSON_PRINT->success(); 
+                  $_JSON_PRINT->response();
+                  $_JSON_PRINT->print();
+               }
+               else
+               {
+                  $_JSON_PRINT->fail("unknow"); 
+               }
+
+            break;
+         }
       }
 
       function getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
