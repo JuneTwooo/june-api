@@ -24,6 +24,7 @@
                      FROM        `" . $_TABLE_LIST['dexocard'] . "`.`store_categorie`
                      WHERE
                         " . (empty($id) ? "1" : "`" . $_TABLE_LIST['dexocard'] . "`.`store_product`.`store_product_id` = '" . addslashes($id) . "'") . "
+                     ORDER BY store_categorie_namefr ASC
                      LIMIT :offset, :limit;
                   ", 
                   [

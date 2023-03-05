@@ -474,11 +474,6 @@
          }
       }
 
-      /**
-
-      * @ignore
-
-      */
       function getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
       {
          global $_TABLE_LIST;

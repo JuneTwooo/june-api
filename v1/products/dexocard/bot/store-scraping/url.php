@@ -41,7 +41,8 @@
                   `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_categorieid`,
                   `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_javascript`,
                   `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_url`,
-                  `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_lastupdate`
+                  `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_lastupdate`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`store`.`store_name`
                ";
 
             // Formatage des données envoyées
@@ -61,6 +62,7 @@
                   (
                      'id'                       => $thisCard['store_url_id'],
                      'storeid'                  => $thisCard['store_url_storeid'],
+                     'storename'                => $thisCard['store_name'],
                      'categoryid'               => $thisCard['store_url_categorieid'],
                      'usetor'                   => $thisCard['store_url_usetor'],
                      'url'                      => $thisCard['store_url_url'],
@@ -199,6 +201,8 @@
                " . $_BLOC_SELECT . "
 
                FROM `" . $_TABLE_LIST['dexocard'] . "`.`store_url`
+               
+               LEFT JOIN `" . $_TABLE_LIST['dexocard'] . "`.`store` ON `store_url`.`store_url_storeid` = `store_id`
                
                " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
 

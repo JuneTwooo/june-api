@@ -29,7 +29,8 @@
                {
                   $_BLOC_WHERE      = $_BLOC_WHERE . " `store_item_id` = '" . addslashes($_GET['id']) . "' AND";
                }
-                  
+               $_BLOC_WHERE      = $_BLOC_WHERE . " `store_item_stock` > 0 AND";
+                 
             // Création requête SQL
 					$_BLOC_SELECT =
 					"
@@ -106,7 +107,7 @@
                if (empty($_POST['lang']))               { $_JSON_PRINT->fail("lang(string) must be specified"); $_JSON_PRINT->print(); }
                if (empty($_POST['price']))              { $_JSON_PRINT->fail("price(decimal) must be specified"); $_JSON_PRINT->print(); }
                if (empty($_POST['currency']))           { $_JSON_PRINT->fail("currency(string) must be specified"); $_JSON_PRINT->print(); }
-               if (empty($_POST['stock']))              { $_JSON_PRINT->fail("stock(int) must be specified"); $_JSON_PRINT->print(); }
+               if (empty($_POST['stock']))              { $_POST['stock'] = 0; }
 
                $itemid = md5($_POST['url']);
 
@@ -134,7 +135,7 @@
                   "store_item_lang"               => (!empty($_POST['lang'])          ? $_POST['lang']            : NULL),
                   "store_item_price"              => (!empty($_POST['price'])         ? $_POST['price']           : NULL),
                   "store_item_currency"           => (!empty($_POST['currency'])      ? $_POST['currency']        : NULL),
-                  "store_item_stock"              => (!empty($_POST['stock'])         ? $_POST['stock']           : NULL),
+                  "store_item_stock"              => $_POST['stock'],
                ]);
 
             // Print Results

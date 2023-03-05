@@ -172,7 +172,7 @@
                " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
 
                ORDER BY 
-                  `" . $_TABLE_LIST['dexocard'] . "`.`store`.`store_id` ASC
+                  `" . $_TABLE_LIST['dexocard'] . "`.`store`.`store_name` ASC
 
                " . ($_BLOC_LIMIT ? $_BLOC_LIMIT : '') . "
                ;

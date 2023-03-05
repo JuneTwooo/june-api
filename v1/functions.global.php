@@ -27,12 +27,14 @@
       string $dir_Base,
       string $dir_Target,
       string $file_Target,
+      bool $autocrop = false,
       bool $toWEBP = true,
       array $fileTypeAccepted = array
       (
          'jpg',
          'jpeg',
          'png',
+         'avif',
          'webp'
       )
    )
@@ -73,28 +75,42 @@
             // Move upload to dir + compress to webp if needed
                if (move_uploaded_file($_FILE["tmp_name"], $dir_target_concat . $file_Target . '.' . $imageFileType))
                {
-                  $image_filename = $file_Target . '.' . $imageFileType;
+                  $image_filename   = $file_Target . '.' . $imageFileType;
+                  $image_MimeType   = mime_content_type($dir_target_concat . $file_Target . '.' . $imageFileType);
 
                   if ($toWEBP)
                   {
                      $buffer_image = null;
-                     switch ($imageFileType)
+                     switch ($image_MimeType)
                      {
-                        case 'jpg':
-                        case 'jpeg':
+                        case 'image/jpg':
+                        case 'image/jpeg':
                         {
                            $buffer_image = imagecreatefromjpeg($dir_target_concat . $file_Target . '.' . $imageFileType);
                            break;
                         }
 
-                        case 'png':
+                        case 'image/png':
                         {
                            $buffer_image = imagecreatefrompng($dir_target_concat . $file_Target . '.' . $imageFileType);
+                           break;
+                        }
+
+                        case 'image/webp':
+                        {
+                           $buffer_image = imagecreatefromwebp($dir_target_concat . $file_Target . '.' . $imageFileType);
+                           break;
+                        }
+
+                        case 'image/avif':
+                        {
+                           $buffer_image = imagecreatefromavif($dir_target_concat . $file_Target . '.' . $imageFileType);
                            break;
                         }
    
                         default:
                         {
+                           return array('success' => 0, 'raison' => "mime type " . $image_MimeType . " unknow");
                            break;
                         }
                      }
@@ -102,16 +118,23 @@
                      if ($buffer_image)
                      {
                         $image_filename = $file_Target . '.webp';
+                        imagepalettetotruecolor($buffer_image);
                         imagewebp($buffer_image, $dir_target_concat . $file_Target . '.webp');
-                        unlink($dir_target_concat . $file_Target . '.' . $imageFileType);
+                        
+                        if ($imageFileType != 'webp') { unlink($dir_target_concat . $file_Target . '.' . $imageFileType); }
                      }
 
                      $finalName  = $dir_Target . $image_filename;
                      $finalName  = preg_replace('#/+#','/', $finalName);
 
-                     $img_RemoveWhiteBG = imagecreatefromwebp($dir_Base . $dir_Target . $image_filename);
-                     $img_RemoveWhiteBG = imagecropauto($img_RemoveWhiteBG, IMG_CROP_WHITE);
-                     imagewebp($img_RemoveWhiteBG, $dir_Base . $dir_Target . $image_filename);
+                     // remove transparency if autocrop is true
+                     if ($autocrop)
+                     {
+                        $img_RemoveWhiteBG = imagecreatefromwebp($dir_Base . $dir_Target . $image_filename);
+                        $img_RemoveWhiteBG = imagecropauto($img_RemoveWhiteBG, IMG_CROP_SIDES);
+                        
+                        imagewebp($img_RemoveWhiteBG, $dir_Base . $dir_Target . $image_filename);
+                     }
 
                      return array('success' => 1, 'filename' => $finalName);
                   }
