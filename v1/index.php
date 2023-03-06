@@ -28,6 +28,25 @@
          $_METHOD = strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
       }
 
+	// CONFIG & INIT
+      require_once(__DIR__ . '/config.php');
+      
+      require_once($_CONFIG['ROOT'] . 'v1/error-handler.php');
+      require_once($_CONFIG['ROOT'] . 'v1/init.php');
+      require_once($_CONFIG['ROOT'] . 'v1/class/print_json.php');
+      require_once($_CONFIG['ROOT'] . 'v1/class/token.php');
+      require_once($_CONFIG['ROOT'] . 'v1/class/route.php');
+      require_once($_CONFIG['ROOT'] . 'v1/class/mysql.php');
+      require_once($_CONFIG['ROOT'] . 'v1/class/log.php');
+      require_once($_CONFIG['ROOT'] . 'v1/functions.global.php');
+
+   // Class
+      $_JSON_PRINT   = new print_JSON();
+      $_TOKEN        = new token();
+      $_ROUTE        = new route();
+      $_LOG          = new logFile();
+      $_MYSQL        = new MySQL();
+
    // CHECK IS SET METHOD
       switch ($_METHOD)
       {
@@ -41,25 +60,6 @@
             $_JSON_PRINT->print();
          }
       }
-
-	// CONFIG & INIT
-      require_once(__DIR__ . '/config.php');
-      
-      require_once($_CONFIG['ROOT'] . 'v1/init.php');
-      require_once($_CONFIG['ROOT'] . 'v1/class/print_json.php');
-      require_once($_CONFIG['ROOT'] . 'v1/class/token.php');
-      require_once($_CONFIG['ROOT'] . 'v1/class/route.php');
-      require_once($_CONFIG['ROOT'] . 'v1/class/mysql.php');
-      require_once($_CONFIG['ROOT'] . 'v1/class/log.php');
-      require_once($_CONFIG['ROOT'] . 'v1/error-handler.php');
-      require_once($_CONFIG['ROOT'] . 'v1/functions.global.php');
-
-   // Class
-      $_JSON_PRINT   = new print_JSON();
-      $_TOKEN        = new token();
-      $_ROUTE        = new route();
-      $_LOG          = new logFile();
-      $_MYSQL        = new MySQL();
 
    // SQL Tables List
       $_TABLE_LIST = array

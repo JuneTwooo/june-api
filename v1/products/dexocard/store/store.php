@@ -149,7 +149,10 @@
 
             // Print Results
                $_JSON_PRINT->success(); 
-               $_JSON_PRINT->response();
+               $_JSON_PRINT->response(array
+               (
+                  'id'                => $_PARAM['id']
+               ));
                $_JSON_PRINT->print();
 
             break;

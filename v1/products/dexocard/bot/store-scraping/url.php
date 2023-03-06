@@ -42,6 +42,8 @@
                   `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_javascript`,
                   `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_url`,
                   `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_lastupdate`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_testask`,
+                  `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_testresult`,
                   `" . $_TABLE_LIST['dexocard'] . "`.`store`.`store_name`
                ";
 
@@ -67,6 +69,7 @@
                      'usetor'                   => $thisCard['store_url_usetor'],
                      'url'                      => $thisCard['store_url_url'],
                      'javascript'               => $thisCard['store_url_javascript'],
+                     'test'                     => $thisCard['store_url_testask'],
                      'date_lastupdate'          => $thisCard['store_url_lastupdate'],
                   ));
                }
@@ -82,7 +85,7 @@
                      "store_url_id" => $results_print[0]['id']
                   ]);
                }
-  
+   
             // Envoi des données
                $results_unfiltered = $_SQL['dexocard']->query
                (
@@ -108,6 +111,14 @@
          {
             // Defaults vars
                if (empty(intval($_PARAM['id']))) { $_JSON_PRINT->fail("id must be specified"); $_JSON_PRINT->print(); }
+               if (!empty($_PARAM['test']) && intval($_PARAM['test']))
+               {
+                  if (empty(intval($_PARAM['id'])))
+                  {
+                     $_JSON_PRINT->fail("id must be specified for testing url");
+                     $_JSON_PRINT->print();
+                  }
+               }
              
             // MySQL Connect
                $_SQL          = $_MYSQL->connect(array("dexocard"));
@@ -129,25 +140,121 @@
                   $_JSON_PRINT->print();                                   
                }
 
-            // Columns to update
-               $update_cols = array();
-               if (!empty($_PARAM['url']))                  { $update_cols = array_merge($update_cols, ["store_url_url"                => $_PARAM['url']]); }
-               if (!empty($_PARAM['categoryid']))           { $update_cols = array_merge($update_cols, ["store_url_categorieid"        => $_PARAM['categoryid']]); }
-               if (!empty($_PARAM['usetor']))               { $update_cols = array_merge($update_cols, ["store_url_usetor"             => $_PARAM['usetor']]); }
-               if (!empty($_PARAM['javascript']))           { $update_cols = array_merge($update_cols, ["store_url_javascript"         => $_PARAM['javascript']]); }
-
-            // Enregistrement SQL
-               if (!$update_cols)
-               {
-                  $_JSON_PRINT->fail("no data to update"); $_JSON_PRINT->print();
-               }
-
-               $_SQL          = $_MYSQL->connect(array("dexocard"));
+            // si un test est demandé, on attends le résultat du bot pendant $maxSeconds secondes
+               ini_set('max_execution_time', 60);
+               set_time_limit(60);
                
-               $results = $_SQL['dexocard']->update("store_url", $update_cols,
-               [
-                  "store_url_id" => $_PARAM['id']
-               ]);
+               $maxSeconds = 30;
+               if (!empty($_PARAM['test']))
+               {
+                  // Connexion SL
+                  $_SQL = $_MYSQL->connect(array("dexocard"));
+
+                  // Vérifie la dernière fois que le bot à update un item
+                  $results_last_update = $_SQL['dexocard']->query
+                  (
+                     "SELECT `store_url_lastupdate` FROM `" . $_TABLE_LIST['dexocard'] . "`.store_url ORDER BY `store_url_lastupdate` DESC LIMIT 0,1;"
+                  )->fetch(PDO::FETCH_ASSOC);
+                  
+                  if ((time() - strtotime($results_last_update['store_url_lastupdate'])) >= 60)
+                  {
+                     $_JSON_PRINT->fail("bot store-scrapping seems to be offline");
+                     $_JSON_PRINT->print();
+                  }
+
+                  // On demande au bot de faire le test sur cette URL
+                  $_SQL['dexocard']->update("store_url", 
+                  [
+                     "store_url_testask"     => 1,
+                     "store_url_testresult"  => null
+                  ],
+                  [
+                     "store_url_id"          => $_PARAM['id']
+                  ]);
+
+                  // reset du query précédent puisqu'on va envoyer un nouveau query comprennant le résultat du test, si le bot est en marche
+                  $results_print = array();
+
+                  // on attend donc $maxSeconds secondes grâce à une boucle
+                  $timeStart = time();
+                  while (1)
+                  {
+                     $results_from_bot = $_SQL['dexocard']->query
+                     (
+                        "SELECT `store_url_id`, `store_url_testresult` FROM `" . $_TABLE_LIST['dexocard'] . "`.store_url WHERE store_url_id = " . intval($_PARAM['id']) . " LIMIT 0,1;"
+                     )->fetch(PDO::FETCH_ASSOC);
+
+                     if ($results_from_bot['store_url_testresult'] != "")
+                     {
+                        // le résultat est là
+                        $results_print = array
+                        (
+                           'id'              => $results_from_bot['store_url_id'],
+                           'testresults'     => $results_from_bot['store_url_testresult'],
+                        );
+
+                        // reset 
+                        $_SQL['dexocard']->update("store_url", 
+                        [
+                           "store_url_testask"     => null,
+                           "store_url_testresult"  => null
+                        ],
+                        [
+                           "store_url_id"          => $_PARAM['id']
+                        ]);
+
+                        // Print Results
+                        $_JSON_PRINT->success(); 
+                        $_JSON_PRINT->response($results_print);
+                        $_JSON_PRINT->print();
+                     }
+                     else
+                     {
+                        if ((time() - $timeStart) >= $maxSeconds)
+                        {
+                           // reset
+                              $_SQL['dexocard']->update("store_url", 
+                              [
+                                 "store_url_testask"     => null,
+                                 "store_url_testresult"  => null
+                              ],
+                              [
+                                 "store_url_id"          => $_PARAM['id']
+                              ]);
+
+                           // show error
+                              $_JSON_PRINT->fail("bot store-scrapping not responding after " . $maxSeconds . " secondes");
+                              $_JSON_PRINT->print();
+                        }
+                        else
+                        { 
+                           sleep(1);
+                        }
+                     }
+                  }
+               }
+               else
+               {
+                  // Columns to update (si aucun test demandé)
+                     $update_cols = array();
+                     if (!empty($_PARAM['url']))                  { $update_cols = array_merge($update_cols, ["store_url_url"                => $_PARAM['url']]); }
+                     if (!empty($_PARAM['categoryid']))           { $update_cols = array_merge($update_cols, ["store_url_categorieid"        => $_PARAM['categoryid']]); }
+                     if (!empty($_PARAM['usetor']))               { $update_cols = array_merge($update_cols, ["store_url_usetor"             => $_PARAM['usetor']]); }
+                     if (!empty($_PARAM['javascript']))           { $update_cols = array_merge($update_cols, ["store_url_javascript"         => $_PARAM['javascript']]); }
+                     if (!empty($_PARAM['testresults']))          { $update_cols = array_merge($update_cols, ["store_url_testresult"         => $_PARAM['testresults']]); }
+
+                  // Enregistrement SQL
+                     if (!$update_cols)
+                     {
+                        $_JSON_PRINT->fail("no data to update"); $_JSON_PRINT->print();
+                     }
+
+                     $_SQL          = $_MYSQL->connect(array("dexocard"));
+                     $_SQL['dexocard']->update("store_url", $update_cols,
+                     [
+                        "store_url_id" => $_PARAM['id']
+                     ]);
+               }
 
             // Print Results
                $_JSON_PRINT->success(); 
@@ -206,8 +313,9 @@
                
                " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
 
-               ORDER BY 
-                  `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_lastupdate` ASC
+               ORDER BY
+               `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_testask` DESC,
+               `" . $_TABLE_LIST['dexocard'] . "`.`store_url`.`store_url_lastupdate` ASC
 
                " . ($_BLOC_LIMIT ? $_BLOC_LIMIT : '') . "
                ;
