@@ -54,7 +54,7 @@
                      'id'                    => $itemSQL['store_product_id'],
                      'category_id'           => $itemSQL['store_product_categorieid'],
                      'set_id'                => $itemSQL['store_product_setid'],
-                     'first_release'         => $itemSQL['store_product_datefirstrealease'],
+                     'first_release'         => $itemSQL['store_product_date_firstrealease'],
                      'name'                  => array
                      (
                         'fr'                    => $itemSQL['store_product_namefr'],
@@ -74,7 +74,7 @@
                         ),
                      ),
                      'datetime_add'          => $itemSQL['store_product_datetime_add'],
-                     'datetime_lastupdate'   => $itemSQL['store_product_lastupdate'],
+                     'datetime_lastupdate'   => $itemSQL['store_product_datetime_lastupdate'],
                   ));
                }
 

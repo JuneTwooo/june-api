@@ -21,8 +21,53 @@
       );
    }
 
-   function uploadFile_Image
-   (
+   function convert_file_to_webp($file, $file_target)
+   {
+      $image_MimeType   = mime_content_type($file);
+
+      $buffer_image = null;
+      switch ($image_MimeType)
+      {
+         case 'image/jpg':
+         case 'image/jpeg':
+         {
+            $buffer_image = imagecreatefromjpeg($file);
+            break;
+         }
+
+         case 'image/png':
+         {
+            $buffer_image = imagecreatefrompng($file);
+            break;
+         }
+
+         case 'image/webp':
+         {
+            $buffer_image = imagecreatefromwebp($file);
+            break;
+         }
+
+         case 'image/avif':
+         {
+            $buffer_image = imagecreatefromavif($file);
+            break;
+         }
+
+         default:
+         {
+            return array('success' => 0, 'raison' => "mime type " . $image_MimeType . " unknow");
+            break;
+         }
+      }
+
+      if ($buffer_image)
+      {
+         imagewebp($buffer_image, $file_target);
+         return array('success' => 1);
+      }
+   }
+
+   function uploadFile_Image(
       array $_FILE,
       string $dir_Base,
       string $dir_Target,

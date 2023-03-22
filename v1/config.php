@@ -9,9 +9,9 @@
         (
             'DEXOCARD'          => array
             (
-                'ROOT'              => '/var/www/_res/dexocard/',
+                'RES_ROOT'          => '/var/www/_res/dexocard/',
+                'RES_URL'           => 'https://res.dexocard.com/',
                 'URL'               => 'https://www.dexocard.com/',
-                'RES'               => 'https://res.dexocard.com/'
             ),
         ),
 

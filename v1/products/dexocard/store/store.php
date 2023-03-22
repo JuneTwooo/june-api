@@ -113,7 +113,7 @@
                   $file_Target   = str_pad($_PARAM['id'], 6, "0", STR_PAD_LEFT) . '-' . cleanTitleURL($_PARAM['name'], 30);
          
                   $uploadResult = null;
-                  $uploadResult = uploadFile_Image($_FILES['file'], $_CONFIG['PRODUCTS']['DEXOCARD']['ROOT'], $dir_Target, $file_Target);
+                  $uploadResult = uploadFile_Image($_FILES['file'], $_CONFIG['PRODUCTS']['DEXOCARD']['RES_ROOT'], $dir_Target, $file_Target);
 
                   if (!$uploadResult['success'])
                   {
