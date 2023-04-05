@@ -483,6 +483,30 @@
                   $_JSON_PRINT->print();                  
                }
 
+               if (!empty($_PARAM['image']) && empty($_PARAM['setid']))
+               {
+                  $_JSON_PRINT->fail("setid must be specified if image is specified");
+                  $_JSON_PRINT->print();                  
+               }
+
+               if (!empty($_PARAM['image']) && empty($_PARAM['serieid']))
+               {
+                  $_JSON_PRINT->fail("serieid must be specified if image is specified");
+                  $_JSON_PRINT->print();                  
+               }
+
+               if (!empty($_PARAM['text']) && !is_array(json_decode($_PARAM['text'], true)))
+               {
+                  $_JSON_PRINT->fail("text must be json string (not parsed)");
+                  $_JSON_PRINT->print();                  
+               }
+
+               if (!empty($_PARAM['weakness']) && !is_array(json_decode($_PARAM['weakness'], true)))
+               {
+                  $_JSON_PRINT->fail("weakness must be json string (not parsed)");
+                  $_JSON_PRINT->print();                  
+               }
+
             // MySQL Connect
                $_SQL          = $_MYSQL->connect(array("dexocard"));
          
@@ -491,6 +515,13 @@
                {
                   $_SQL['dexocard']->insert("card", []);
                   $_PARAM['id'] = $_SQL['dexocard']->id();
+
+                  // ajouter aussi les enregistrements vierges pour ces table :
+                  // card_name
+                  // card_images
+                  // card_propriety
+
+                  // sinon ça fonctionnera pas
                }
          
             // Search exist
@@ -511,12 +542,12 @@
                   $_JSON_PRINT->fail("id not found");
                   $_JSON_PRINT->print();                                   
                }
-               print_r($_SQL_PRODUCT);
 
             // Upload Image
                // à faire
 
             // Download Image
+               $new_image = false;
                if (!empty($_PARAM['image']))
                {
                   if 
@@ -525,33 +556,181 @@
                      (!file_exists($_CONFIG['PRODUCTS']['DEXOCARD']['ROOT'] . $_SQL_PRODUCT['card_images_imagesHigh' . strtoupper($_PARAM['lang'])]))
                   )
                   {
-                     echo 're';
+                     $new_image = convert_image_card($_PARAM, download_image_card($_PARAM['image']));
                   }
-                  //!empty($_PARAM['redownload_image'])
-                  download_image_card($_PARAM['image'], 'ok');
                }
                   
             // Enregistrement SQL
-               /*$date = DateTime::createFromFormat('d/m/Y', $_PARAM['release']);
-               $results = $_SQL['dexocard']->update("store_product", 
-               [
-                  "store_product_categorieid"         => ($_PARAM['categoryid']),
-                  "store_product_setid"               => ($_PARAM['setid']),
-                  "store_product_namefr"              => (!empty($_PARAM['namefr'])          ? $_PARAM['namefr']           : NULL),
-                  "store_product_nameen"              => (!empty($_PARAM['nameen'])          ? $_PARAM['nameen']           : NULL),
-                  "store_product_imagefr"             => (!empty($filenameUploaded['fr'])    ? $filenameUploaded['fr']     : $_SQL_PRODUCT['store_product_imagefr']),
-                  "store_product_imagefr_phash"       => (!empty($phash['fr'])               ? $phash['fr']                : $_SQL_PRODUCT['store_product_imagefr_phash']),
-                  "store_product_imageen"             => (!empty($filenameUploaded['en'])    ? $filenameUploaded['en']     : $_SQL_PRODUCT['store_product_imageen']),
-                  "store_product_imageen_phash"       => (!empty($phash['en'])               ? $phash['en']                : $_SQL_PRODUCT['store_product_imageen_phash']),
-                  "store_product_date_firstrealease"  => (!empty($_PARAM['release'])         ? $date->format('Y-m-d')      : NULL),
-                  "store_product_haspins"             => (!empty($_PARAM['has_pins'])        ? $_PARAM['has_pins']         : NULL),
-                  "store_product_hastoken"            => (!empty($_PARAM['has_token'])       ? $_PARAM['has_token']        : NULL),
-                  "store_product_hasfigurine"         => (!empty($_PARAM['has_figurine'])    ? $_PARAM['has_figurine']     : NULL),
-                  "store_product_datetime_lastupdate" => Medoo::raw('NOW()'),
-               ],
-               [
-                  "store_product_id" => $_PARAM['id']
-               ]);*/
+               // Images
+                  if ($new_image)
+                  {
+                     $folder = $_CONFIG['PRODUCTS']['DEXOCARD']['ROOT'] . 'img/cards/' . $_PARAM['setid'];
+
+                     $results = $_SQL['dexocard']->update("card_images", 
+                     [
+                        "card_images_imagesHigh"   . strtoupper($_PARAM['lang'])    => ('img/cards/' . $_PARAM['setid'] . '/' . $_PARAM['lang'] . '_high_' . md5($_PARAM['id']) . '.webp'),
+                        "card_images_imagesSmall"  . strtoupper($_PARAM['lang'])    => ('img/cards/' . $_PARAM['setid'] . '/' . $_PARAM['lang'] . '_small_' . md5($_PARAM['id']) . '.webp'),
+                        "card_images_LastUpdate"                                    => date('Y-m-d H:m:s', time()),
+                     ],
+                     [
+                        "card_images_cardid " => $_PARAM['id']
+                     ]);
+                  }
+
+               // Name
+                  if (!empty($_PARAM['name']))
+                  {
+                     $name_formated    = str_replace('-ex', ' ex', $_PARAM['name']);
+
+                     $update_sql = array();
+                     if (!empty($name_formated))           { $update_sql = array_merge($update_sql, ["card_name_name"   . strtoupper($_PARAM['lang'])         => $name_formated]); }
+
+                     if ($update_sql)
+                     {
+                        $results = $_SQL['dexocard']->update("card_name", $update_sql,
+                        [
+                           "card_name_cardid" => $_PARAM['id']
+                        ]);
+                     }
+                  }
+
+               // Talents
+                  if (!empty($_PARAM['text']))
+                  {
+                     foreach (json_decode($_PARAM['text'], true) as $itemText)
+                     {
+                        switch ($itemText['type'])
+                        {
+                           case 'attack':
+                           {
+                              $_SQL['dexocard']->delete("card_attacks",
+                              [
+                                 "AND" =>
+                                 [
+                                    "card_attacks_cardid"   => $_PARAM['id'],
+                                    "card_attacks_lang"     => strtoupper($_PARAM['lang'])
+                                 ]
+                              ]);
+
+                              $_SQL['dexocard']->insert("card_attacks",
+                              [
+                                 "card_attacks_cardid"               => $_PARAM['id'],
+                                 "card_attacks_lang"                 => strtoupper($_PARAM['lang']),
+                                 "card_attacks_name"                 => (!empty($itemText['title'])            ? $itemText['title'] : NULL),
+                                 "card_attacks_text"                 => (!empty($itemText['text'])             ? $itemText['text'] : NULL),
+                                 "card_attacks_convertedEnergyCost"  => (!empty($itemText['energy_cost'])      ? $itemText['energy_cost'] : NULL),
+                                 "card_attacks_damage"               => (!empty($itemText['degat'])            ? $itemText['degat'] : NULL),
+                                 "card_attacks_costtypeid1"          => (isset($itemText['energy'][0])         ? $itemText['energy'][0] : NULL),
+                                 "card_attacks_costtypeid2"          => (isset($itemText['energy'][1])         ? $itemText['energy'][1] : NULL),
+                                 "card_attacks_costtypeid3"          => (isset($itemText['energy'][2])         ? $itemText['energy'][2] : NULL),
+                                 "card_attacks_costtypeid4"          => (isset($itemText['energy'][3])         ? $itemText['energy'][3] : NULL),
+                                 "card_attacks_costtypeid5"          => (isset($itemText['energy'][4])         ? $itemText['energy'][4] : NULL),
+                              ]);
+
+                              break;
+                           }
+
+                           case 'talent':
+                           {
+                              $_SQL['dexocard']->delete("card_abilities",
+                              [
+                                 "AND" =>
+                                 [
+                                    "card_abilities_cardid"   => $_PARAM['id'],
+                                    "card_abilities_lang"     => strtoupper($_PARAM['lang'])
+                                 ]
+                              ]);
+
+                              $_SQL['dexocard']->insert("card_abilities",
+                              [
+                                 "card_abilities_cardid"               => $_PARAM['id'],
+                                 "card_abilities_lang"                 => strtoupper($_PARAM['lang']),
+                                 "card_abilities_name"                 => (!empty($itemText['title'])            ? $itemText['title'] : NULL),
+                                 "card_abilities_text"                 => (!empty($itemText['text'])             ? $itemText['text'] : NULL),
+                              ]);
+
+                              break;
+                           }
+
+                           default:
+                           {
+                              $_JSON_PRINT->fail("ability type not found : " . $itemText['type']);
+                              $_JSON_PRINT->print();
+                           }
+                        }
+                     }
+                  }      
+
+               // `card`
+                  $update_sql = array();
+
+                  if (!empty($_PARAM['rarete']))
+                  {
+                     $rarety_data = get_rarity_data($_PARAM['rarete']);
+
+                     if (!$rarety_data)
+                     {
+                        $_JSON_PRINT->fail("rarity string unknow : " . $rarety_data);
+                        $_JSON_PRINT->print();      
+                     }
+                  }
+
+                  if (!empty($_PARAM['artist']))            { $update_sql = array_merge($update_sql, ["card_artist"              => $_PARAM['artist']]); }
+                  if (!empty($_PARAM['supertype']))         { $update_sql = array_merge($update_sql, ["card_supertype"           => $_PARAM['supertype']]); }
+                  if (!empty($_PARAM['rarete']))            { $update_sql = array_merge($update_sql, ["card_rarity"              => $_PARAM['rarete']]); }
+                  if (!empty($_PARAM['rarete']))            { $update_sql = array_merge($update_sql, ["card_rarityIndex"         => $rarety_data['rarityIndex']]); }
+                  if (!empty($_PARAM['rarete']))            { $update_sql = array_merge($update_sql, ["card_raritySimplified"    => $rarety_data['raritySimplified']]); }
+                  if (!empty($_PARAM['hp']))                { $update_sql = array_merge($update_sql, ["card_hp"                  => $_PARAM['hp']]); }
+
+                  if ($update_sql)
+                  {
+                     $results = $_SQL['dexocard']->update("card", $update_sql,
+                     [
+                        "card_id" => $_PARAM['id']
+                     ]);
+                  }
+
+               // Card Energy Type
+                  if (!empty($_PARAM['type']))
+                  {
+                     $_SQL['dexocard']->delete("card_types",
+                     [
+                        "AND" =>
+                        [
+                           "card_types_cardid"     => strtoupper($_PARAM['id'])
+                        ]
+                     ]);
+
+                     $_SQL['dexocard']->insert("card_types",
+                     [
+                        "card_types_cardid"                 => $_PARAM['id'],
+                        "card_types_typeid"                 => $_PARAM['type'],
+                     ]);
+                  }
+
+               // Card Weakness
+                  if (!empty($_PARAM['weakness']))
+                  {
+                     $_PARAM['weakness'] = json_decode($_PARAM['weakness'], true);
+
+                     if (isset($_PARAM['weakness']['type']) && isset($_PARAM['weakness']['multiple']))
+                     {
+                        $_SQL['dexocard']->delete("card_weaknesses",
+                        [
+                           "AND" =>
+                           [
+                              "card_weaknesses_cardid"            => strtoupper($_PARAM['id'])
+                           ]
+                        ]);
+
+                        $_SQL['dexocard']->insert("card_weaknesses",
+                        [
+                           "card_weaknesses_cardid"               => $_PARAM['id'],
+                           "card_weaknesses_typeid"               => $_PARAM['weakness']['type'],
+                           "card_weaknesses_value"                => $_PARAM['weakness']['multiple'],
+                        ]);
+                     }
+                  }
 
             // Print Results
                $_JSON_PRINT->success(); 
@@ -587,9 +766,84 @@
             ";
       }
 
-      function download_image_card($url, $destination)
+      function download_image_card($url)
       {
-         //echo $url;
+         global $_JSON_PRINT;
+
+         // Download image
+            $host = $url;
+            $ch   = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $host);
+            curl_setopt($ch, CURLOPT_VERBOSE, 1);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_AUTOREFERER, false);
+            curl_setopt($ch, CURLOPT_REFERER, $host);
+            curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+            $result = curl_exec($ch);
+            curl_close($ch);
+      
+            if (curl_errno($ch))
+            {
+               $error_msg = curl_error($ch);
+               $_JSON_PRINT->fail();
+               $_JSON_PRINT->print();    
+            }
+
+            return $result;
+            //$finfo = new finfo(FILEINFO_MIME_TYPE);
+            //$ext = $finfo->buffer($result);
       }
    
+      function convert_image_card($_PARAM, $buffer)
+      {
+         global $_CONFIG;
+         global $_JSON_PRINT;
+
+         // Open buffer
+            $img_downloaded = imagecreatefromstring($buffer);
+
+         // Images infos
+            $origWidth = imagesx($img_downloaded);
+            $origHeight = imagesy($img_downloaded);
+
+         // Create canvas
+            $img_hd = imagecreatetruecolor ($origWidth, $origHeight);
+            imageAlphaBlending($img_hd, false);
+            imageSaveAlpha($img_hd, true);
+            $trans = imagecolorallocatealpha($img_hd, 0, 0, 0, 127);
+            imagefilledrectangle($img_hd, 0, 0, $origWidth - 1, $origHeight - 1, $trans);
+            
+         // copy image result to canvas
+            imagecopy($img_hd, $img_downloaded, 0, 0, 0, 0, $origWidth, $origHeight);
+
+         // folder destination  
+            $folder = $_CONFIG['PRODUCTS']['DEXOCARD']['ROOT'] . 'img/cards/' . $_PARAM['setid'];
+
+         // create folder destination if not exist
+            if (!is_dir($folder))
+            {
+               if (!mkdir($folder))
+               {
+                  $_JSON_PRINT->fail("unable to create folder : " . $folder);
+                  $_JSON_PRINT->print();   
+               }
+            }
+
+         // resize HD to SD
+            $newWidth   = 286;
+            $newHeight  = 400;
+
+            $img_sd = @imagecreatetruecolor($newWidth, $newHeight);
+            imagecopyresampled($img_sd, $img_hd, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+            imagesavealpha($img_sd, true);
+            $trans_colour = imagecolorallocatealpha($img_sd, 0, 0, 0, 127);
+            imagefill($img_sd, 0, 0, $trans_colour);
+
+         // Convert to WebP => HD / SD
+            imagewebp($img_hd, $folder . '/' . $_PARAM['lang'] . '_high_' . md5($_PARAM['id']) . '.webp');
+            imagewebp($img_sd, $folder . '/' . $_PARAM['lang'] . '_small_' . md5($_PARAM['id']) . '.webp');
+
+         return true;
+      }
 ?>

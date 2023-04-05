@@ -85,6 +85,8 @@
          {
             case 'api.dexocard.com' : 
             {
+               require_once($_CONFIG['ROOT'] . 'v1/products/dexocard/functions.dexocard.php');
+
                $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/dexocard/';
                
                // CARTES 
