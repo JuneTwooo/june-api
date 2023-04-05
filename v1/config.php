@@ -11,6 +11,7 @@
             (
                 'RES_ROOT'          => '/var/www/_res/dexocard/',
                 'RES_URL'           => 'https://res.dexocard.com/',
+                'ROOT'              => '/var/www/dexocard.com/www/',
                 'URL'               => 'https://www.dexocard.com/',
             ),
         ),

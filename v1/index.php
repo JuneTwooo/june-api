@@ -86,13 +86,13 @@
             case 'api.dexocard.com' : 
             {
                $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/dexocard/';
-
-               // TCG
+               
+               // CARTES 
                   $_ROUTE->GET('/v1/tcg/card',                                   $_PRODUCT . 'tcg/card');
                   $_ROUTE->GET('/v1/tcg/card/price',                             $_PRODUCT . 'tcg/card-price');
                   $_ROUTE->GET('/v1/tcg/set',                                    $_PRODUCT . 'tcg/set');
 
-               // TCG O
+               // TCG Online
                   $_ROUTE->GET('/v1/tcgo/code',                                  $_PRODUCT . 'tcgo/code');
 
                // STORE

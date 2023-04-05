@@ -472,6 +472,94 @@
 
             break;
          }
+
+         case 'POST':
+         case 'PUT':
+         {
+            // Check parameters
+               if (empty($_PARAM['id']))
+               {
+                  $_JSON_PRINT->fail("id must be specified");
+                  $_JSON_PRINT->print();                  
+               }
+
+            // MySQL Connect
+               $_SQL          = $_MYSQL->connect(array("dexocard"));
+         
+            // Get New ID
+               if (strtoupper($_METHOD) == 'POST')
+               {
+                  $_SQL['dexocard']->insert("card", []);
+                  $_PARAM['id'] = $_SQL['dexocard']->id();
+               }
+         
+            // Search exist
+               $_SQL_PRODUCT  = $_SQL['dexocard']->query(
+               "
+                  SELECT
+                     *
+                  FROM 
+                     `tcg`.`card`
+                  LEFT JOIN `tcg`.`card_images` ON `card_images_cardid` = `card`.`card_id`
+                  WHERE
+                     card_id = :card_id
+               ", [":card_id" => $_PARAM['id']])->fetch(PDO::FETCH_ASSOC);
+
+            // Recherche si le produit existe
+               if (empty($_SQL_PRODUCT['card_id']))
+               {
+                  $_JSON_PRINT->fail("id not found");
+                  $_JSON_PRINT->print();                                   
+               }
+               print_r($_SQL_PRODUCT);
+
+            // Upload Image
+               // à faire
+
+            // Download Image
+               if (!empty($_PARAM['image']))
+               {
+                  if 
+                  (
+                     empty($_SQL_PRODUCT['card_images_imagesHigh' . strtoupper($_PARAM['lang'])]) || 
+                     (!file_exists($_CONFIG['PRODUCTS']['DEXOCARD']['ROOT'] . $_SQL_PRODUCT['card_images_imagesHigh' . strtoupper($_PARAM['lang'])]))
+                  )
+                  {
+                     echo 're';
+                  }
+                  //!empty($_PARAM['redownload_image'])
+                  download_image_card($_PARAM['image'], 'ok');
+               }
+                  
+            // Enregistrement SQL
+               /*$date = DateTime::createFromFormat('d/m/Y', $_PARAM['release']);
+               $results = $_SQL['dexocard']->update("store_product", 
+               [
+                  "store_product_categorieid"         => ($_PARAM['categoryid']),
+                  "store_product_setid"               => ($_PARAM['setid']),
+                  "store_product_namefr"              => (!empty($_PARAM['namefr'])          ? $_PARAM['namefr']           : NULL),
+                  "store_product_nameen"              => (!empty($_PARAM['nameen'])          ? $_PARAM['nameen']           : NULL),
+                  "store_product_imagefr"             => (!empty($filenameUploaded['fr'])    ? $filenameUploaded['fr']     : $_SQL_PRODUCT['store_product_imagefr']),
+                  "store_product_imagefr_phash"       => (!empty($phash['fr'])               ? $phash['fr']                : $_SQL_PRODUCT['store_product_imagefr_phash']),
+                  "store_product_imageen"             => (!empty($filenameUploaded['en'])    ? $filenameUploaded['en']     : $_SQL_PRODUCT['store_product_imageen']),
+                  "store_product_imageen_phash"       => (!empty($phash['en'])               ? $phash['en']                : $_SQL_PRODUCT['store_product_imageen_phash']),
+                  "store_product_date_firstrealease"  => (!empty($_PARAM['release'])         ? $date->format('Y-m-d')      : NULL),
+                  "store_product_haspins"             => (!empty($_PARAM['has_pins'])        ? $_PARAM['has_pins']         : NULL),
+                  "store_product_hastoken"            => (!empty($_PARAM['has_token'])       ? $_PARAM['has_token']        : NULL),
+                  "store_product_hasfigurine"         => (!empty($_PARAM['has_figurine'])    ? $_PARAM['has_figurine']     : NULL),
+                  "store_product_datetime_lastupdate" => Medoo::raw('NOW()'),
+               ],
+               [
+                  "store_product_id" => $_PARAM['id']
+               ]);*/
+
+            // Print Results
+               $_JSON_PRINT->success(); 
+               $_JSON_PRINT->response();
+               $_JSON_PRINT->print();
+
+            break;
+         }
       }
 
       function getQuery_Cards($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
@@ -498,4 +586,10 @@
                ;
             ";
       }
+
+      function download_image_card($url, $destination)
+      {
+         //echo $url;
+      }
+   
 ?>
