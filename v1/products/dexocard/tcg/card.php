@@ -597,68 +597,70 @@
                // Talents
                   if (!empty($_PARAM['text']))
                   {
-                     foreach (json_decode($_PARAM['text'], true) as $itemText)
-                     {
-                        switch ($itemText['type'])
+                     // remove olds abilities and attacks
+                        $_SQL['dexocard']->delete("card_attacks",
+                        [
+                           "AND" =>
+                           [
+                              "card_attacks_cardid"   => $_PARAM['id'],
+                              "card_attacks_lang"     => strtoupper($_PARAM['lang'])
+                           ]
+                        ]);
+
+                        $_SQL['dexocard']->delete("card_abilities",
+                        [
+                           "AND" =>
+                           [
+                              "card_abilities_cardid"   => $_PARAM['id'],
+                              "card_abilities_lang"     => strtoupper($_PARAM['lang'])
+                           ]
+                        ]);
+
+                     // insert new abilites and attacks
+                        foreach (json_decode($_PARAM['text'], true) as $itemText)
                         {
-                           case 'attack':
+                           switch ($itemText['type'])
                            {
-                              $_SQL['dexocard']->delete("card_attacks",
-                              [
-                                 "AND" =>
+                              case 'attack':
+                              {
+                                 $_SQL['dexocard']->insert("card_attacks",
                                  [
-                                    "card_attacks_cardid"   => $_PARAM['id'],
-                                    "card_attacks_lang"     => strtoupper($_PARAM['lang'])
-                                 ]
-                              ]);
+                                    "card_attacks_cardid"               => $_PARAM['id'],
+                                    "card_attacks_lang"                 => strtoupper($_PARAM['lang']),
+                                    "card_attacks_name"                 => (!empty($itemText['title'])            ? $itemText['title'] : NULL),
+                                    "card_attacks_text"                 => (!empty($itemText['text'])             ? $itemText['text'] : NULL),
+                                    "card_attacks_convertedEnergyCost"  => (!empty($itemText['energy_cost'])      ? $itemText['energy_cost'] : NULL),
+                                    "card_attacks_damage"               => (!empty($itemText['degat'])            ? $itemText['degat'] : NULL),
+                                    "card_attacks_costtypeid1"          => (isset($itemText['energy'][0])         ? $itemText['energy'][0] : NULL),
+                                    "card_attacks_costtypeid2"          => (isset($itemText['energy'][1])         ? $itemText['energy'][1] : NULL),
+                                    "card_attacks_costtypeid3"          => (isset($itemText['energy'][2])         ? $itemText['energy'][2] : NULL),
+                                    "card_attacks_costtypeid4"          => (isset($itemText['energy'][3])         ? $itemText['energy'][3] : NULL),
+                                    "card_attacks_costtypeid5"          => (isset($itemText['energy'][4])         ? $itemText['energy'][4] : NULL),
+                                 ]);
 
-                              $_SQL['dexocard']->insert("card_attacks",
-                              [
-                                 "card_attacks_cardid"               => $_PARAM['id'],
-                                 "card_attacks_lang"                 => strtoupper($_PARAM['lang']),
-                                 "card_attacks_name"                 => (!empty($itemText['title'])            ? $itemText['title'] : NULL),
-                                 "card_attacks_text"                 => (!empty($itemText['text'])             ? $itemText['text'] : NULL),
-                                 "card_attacks_convertedEnergyCost"  => (!empty($itemText['energy_cost'])      ? $itemText['energy_cost'] : NULL),
-                                 "card_attacks_damage"               => (!empty($itemText['degat'])            ? $itemText['degat'] : NULL),
-                                 "card_attacks_costtypeid1"          => (isset($itemText['energy'][0])         ? $itemText['energy'][0] : NULL),
-                                 "card_attacks_costtypeid2"          => (isset($itemText['energy'][1])         ? $itemText['energy'][1] : NULL),
-                                 "card_attacks_costtypeid3"          => (isset($itemText['energy'][2])         ? $itemText['energy'][2] : NULL),
-                                 "card_attacks_costtypeid4"          => (isset($itemText['energy'][3])         ? $itemText['energy'][3] : NULL),
-                                 "card_attacks_costtypeid5"          => (isset($itemText['energy'][4])         ? $itemText['energy'][4] : NULL),
-                              ]);
+                                 break;
+                              }
 
-                              break;
-                           }
-
-                           case 'talent':
-                           {
-                              $_SQL['dexocard']->delete("card_abilities",
-                              [
-                                 "AND" =>
+                              case 'talent':
+                              {
+                                 $_SQL['dexocard']->insert("card_abilities",
                                  [
-                                    "card_abilities_cardid"   => $_PARAM['id'],
-                                    "card_abilities_lang"     => strtoupper($_PARAM['lang'])
-                                 ]
-                              ]);
+                                    "card_abilities_cardid"               => $_PARAM['id'],
+                                    "card_abilities_lang"                 => strtoupper($_PARAM['lang']),
+                                    "card_abilities_name"                 => (!empty($itemText['title'])            ? $itemText['title'] : NULL),
+                                    "card_abilities_text"                 => (!empty($itemText['text'])             ? $itemText['text'] : NULL),
+                                 ]);
 
-                              $_SQL['dexocard']->insert("card_abilities",
-                              [
-                                 "card_abilities_cardid"               => $_PARAM['id'],
-                                 "card_abilities_lang"                 => strtoupper($_PARAM['lang']),
-                                 "card_abilities_name"                 => (!empty($itemText['title'])            ? $itemText['title'] : NULL),
-                                 "card_abilities_text"                 => (!empty($itemText['text'])             ? $itemText['text'] : NULL),
-                              ]);
+                                 break;
+                              }
 
-                              break;
-                           }
-
-                           default:
-                           {
-                              $_JSON_PRINT->fail("ability type not found : " . $itemText['type']);
-                              $_JSON_PRINT->print();
+                              default:
+                              {
+                                 $_JSON_PRINT->fail("ability type not found : " . $itemText['type']);
+                                 $_JSON_PRINT->print();
+                              }
                            }
                         }
-                     }
                   }      
 
                // `card`
@@ -681,6 +683,10 @@
                   if (!empty($_PARAM['rarete']))            { $update_sql = array_merge($update_sql, ["card_rarityIndex"         => $rarety_data['rarityIndex']]); }
                   if (!empty($_PARAM['rarete']))            { $update_sql = array_merge($update_sql, ["card_raritySimplified"    => $rarety_data['raritySimplified']]); }
                   if (!empty($_PARAM['hp']))                { $update_sql = array_merge($update_sql, ["card_hp"                  => $_PARAM['hp']]); }
+                  if (!empty($_PARAM['index']))             { $update_sql = array_merge($update_sql, ["card_index"               => $_PARAM['index']]); }
+                  if (!empty($_PARAM['level']))             { $update_sql = array_merge($update_sql, ["card_level"               => $_PARAM['level']]); }
+                  if (!empty($_PARAM['setid']))             { $update_sql = array_merge($update_sql, ["card_setid"               => $_PARAM['setid']]); }
+                  if (!empty($_PARAM['serieid']))           { $update_sql = array_merge($update_sql, ["card_serieid"             => $_PARAM['serieid']]); }
 
                   if ($update_sql)
                   {
@@ -693,19 +699,25 @@
                // Card Energy Type
                   if (!empty($_PARAM['type']))
                   {
-                     $_SQL['dexocard']->delete("card_types",
-                     [
-                        "AND" =>
+                     if (!empty($_PARAM['type']))
+                     {
+                        $_SQL['dexocard']->delete("card_types",
                         [
-                           "card_types_cardid"     => strtoupper($_PARAM['id'])
-                        ]
-                     ]);
+                           "AND" =>
+                           [
+                              "card_types_cardid"     => strtoupper($_PARAM['id'])
+                           ]
+                        ]);
 
-                     $_SQL['dexocard']->insert("card_types",
-                     [
-                        "card_types_cardid"                 => $_PARAM['id'],
-                        "card_types_typeid"                 => $_PARAM['type'],
-                     ]);
+                        if ($_PARAM['type'])
+                        {
+                           $_SQL['dexocard']->insert("card_types",
+                           [
+                              "card_types_cardid"                 => $_PARAM['id'],
+                              "card_types_typeid"                 => $_PARAM['type'],
+                           ]);
+                        }
+                     }
                   }
 
                // Card Weakness

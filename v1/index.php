@@ -29,8 +29,7 @@
       }
 
 	// CONFIG & INIT
-      require_once(__DIR__ . '/config.php');
-      
+      require_once(__DIR__          . '/config.php');
       require_once($_CONFIG['ROOT'] . 'v1/error-handler.php');
       require_once($_CONFIG['ROOT'] . 'v1/init.php');
       require_once($_CONFIG['ROOT'] . 'v1/class/print_json.php');
@@ -70,9 +69,9 @@
 
    // Paramètres _GET, _POST => _PARAM
       $_PARAM = array();
-      foreach ($_GET as $key => $param)   { $_PARAM[$key] = $param; }
-      foreach ($_POST as $key => $param)  { $_PARAM[$key] = $param; }
-   
+      foreach ($_GET as $key => $param)   { $_PARAM[$key] = ($param != 'null' ? $param : NULL); }
+      foreach ($_POST as $key => $param)  { $_PARAM[$key] = ($param != 'null' ? $param : NULL); }
+
    // Routing selon l'HOST
       $_PUBLIC_KEY   = (empty($_SERVER['HTTP_AUTHORIZATION']) ? NULL : $_SERVER['HTTP_AUTHORIZATION']);
 
@@ -119,12 +118,14 @@
             {
                $_PRODUCT   = $_CONFIG['ROOT'] . 'v1/products/admin/';
 
-               $_ROUTE->GET('/v1/user/login',                        $_PRODUCT . 'user/login');
+               // USER
+                  $_ROUTE->GET('/v1/user/login',                        $_PRODUCT . 'user/login');
+                  $_ROUTE->GET('/v1/user',                              $_PRODUCT . 'user/user');
 
-               $_ROUTE->GET('/v1/token',                             $_PRODUCT . 'token/token');
-               $_ROUTE->GET('/v1/token/$id',                         $_PRODUCT . 'token/token');
-               $_ROUTE->POST('/v1/token',                            $_PRODUCT . 'token/token');
-               $_ROUTE->PUT('/v1/token/$id/$access',                 $_PRODUCT . 'token/token');
+               // TOKEN
+                  $_ROUTE->GET('/v1/token',                             $_PRODUCT . 'token/token');
+                  $_ROUTE->POST('/v1/token',                            $_PRODUCT . 'token/token');
+                  $_ROUTE->PUT('/v1/token/$id/$access',                 $_PRODUCT . 'token/token');
 
                break;
             }

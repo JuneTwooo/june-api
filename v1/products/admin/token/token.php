@@ -9,7 +9,7 @@
             // Check parameters
                if (empty($_GET['limit']))       { $_GET['limit'] = 10; }      else { if (1 > $_GET['limit'])  { $_GET['limit']  = 10; } }
                if (empty($_GET['offset']))      { $_GET['offset'] = 0; }      else { if (0 > $_GET['offset']) { $_GET['offset'] = 0; } }
-               if (empty($id))                  { $id = null; } 
+               if (empty($_GET['id']))          { $_GET['id'] = null; } 
 
             // MySQL Connect
                $_SQL = $_MYSQL->connect(array("api"));
@@ -33,7 +33,7 @@
                      FROM 
                         `" . $_TABLE_LIST['api'] . "`.`token`
                      WHERE
-                        " . (empty($id) ? "1" : "`" . $_TABLE_LIST['api'] . "`.`token`.`token_id` = '" . addslashes($id) . "'") . "
+                        " . (empty($_GET['id']) ? "1" : "`" . $_TABLE_LIST['api'] . "`.`token`.`token_id` = '" . addslashes($_GET['id']) . "'") . "
                      LIMIT :offset, :limit;
                   ", 
                   [
@@ -49,7 +49,8 @@
                      'access'    => (isJson($itemSQL['token_access']) ? json_decode($itemSQL['token_access'], true) : array()),
                      'user'      => ($itemSQL['user_associated']  ? json_decode($itemSQL['user_associated'], true) : null),
                   ));
-               }
+               };
+
 
             // Print Result
                $_JSON_PRINT->success(); 
