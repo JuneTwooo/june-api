@@ -92,9 +92,12 @@
                   $_ROUTE->GET('/v1/tcg/card',                                   $_PRODUCT . 'tcg/card');
                   $_ROUTE->GET('/v1/tcg/card/price',                             $_PRODUCT . 'tcg/card-price');
                   $_ROUTE->GET('/v1/tcg/set',                                    $_PRODUCT . 'tcg/set');
+                  $_ROUTE->GET('/v1/tcg/serie',                                  $_PRODUCT . 'tcg/serie');
 
                // TCG Online
                   $_ROUTE->GET('/v1/tcgo/code',                                  $_PRODUCT . 'tcgo/code');
+                  $_ROUTE->GET('/v1/tcgo/giveaway',                              $_PRODUCT . 'tcgo/giveaway');
+                  $_ROUTE->GET('/v1/tcgo/giveaway_user',                         $_PRODUCT . 'tcgo/giveaway_user');
 
                // STORE
                   $_ROUTE->GET('/v1/store',                                      $_PRODUCT . 'store/store');

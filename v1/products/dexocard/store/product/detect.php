@@ -24,10 +24,24 @@
 
                if (!empty($_GET['search_text']))
                {
-                  $_BLOC_WHERE      = $_BLOC_WHERE . " (`store_product_namefr` LIKE :search_text_productnamefr OR `card_set_nameFR` LIKE :search_text_setnamefr OR `card_set_AbreviationFR` LIKE :search_text_setabvrfr) AND";
+                  $_BLOC_WHERE      = $_BLOC_WHERE . "
+                     (
+                        `store_product_namefr` LIKE :search_text_productnamefr OR 
+                        `card_set_nameFR` LIKE :search_text_setnamefr OR 
+                        `card_set_AbreviationFR` LIKE :search_text_setabvrfr OR 
+
+                        `store_product_nameen` LIKE :search_text_productnameen OR 
+                        `card_set_nameEN` LIKE :search_text_setnameen OR 
+                        `card_set_AbreviationEN` LIKE :search_text_setabvren
+                     ) AND";
+
                   $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_productnamefr" => '%' . $_GET['search_text'] . '%']);   
                   $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_setnamefr" => '%' . $_GET['search_text'] . '%']);   
                   $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_setabvrfr" => '%' . $_GET['search_text'] . '%']);   
+
+                  $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_productnameen" => '%' . $_GET['search_text'] . '%']);   
+                  $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_setnameen" => '%' . $_GET['search_text'] . '%']);   
+                  $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_setabvren" => '%' . $_GET['search_text'] . '%']);   
                }
 
 

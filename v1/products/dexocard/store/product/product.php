@@ -197,7 +197,7 @@
 
                         $hasher = new ImageHash(new DifferenceHash());
                         $phash[$lang] = $hasher->hash($_CONFIG['PRODUCTS']['DEXOCARD']['RES_ROOT'] . $uploadResult['filename'])->toHex();
-                        $phash[$lang] = hexdec($phash['fr']) . '';
+                        $phash[$lang] = hexdec($phash[$lang]) . '';
                      }
                   }
                }

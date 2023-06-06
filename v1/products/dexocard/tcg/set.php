@@ -6,11 +6,6 @@
       {
          case 'GET':
          {
-            /*
-               ?operand=and&filters=[{"filter":{"data":"id","operand":"=","value":"swsh12"}},{"filter":{"data":"id","operand":"=","value":"swsh11"}}]
-               ?operand=or&filters=[{"filter":{"data":"id","operand":"=","value":"swsh12}}]
-            */
-
             $_FILTERS_ACTIVE  = array();
             $_BLOC_WHERE      = '';
             $_ASSOCS_VARS     = array();
@@ -22,7 +17,26 @@
                if (!empty($_GET['order']))      { $_ORDER      = $_GET['order']; }                                            else { $_ORDER = "AND"; }
             
             // Filtres
-               if (!empty($_GET['filters']))
+               if (!empty($_GET['search_text']))
+               {
+                  $_BLOC_WHERE      = $_BLOC_WHERE . " 
+                  (
+                        `card_set_nameFR` LIKE :search_text_set_namefr OR 
+                        `card_set_nameEN` LIKE :search_text_set_nameen OR 
+                        `card_set_id`     LIKE :search_text_set_id
+                  ) AND";
+                  $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_set_namefr"        => '%' . addslashes($_GET['search_text']) . '%']);   
+                  $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_set_nameen"        => '%' . addslashes($_GET['search_text']) . '%']);   
+                  $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_set_id"            => '%' . addslashes($_GET['search_text']) . '%']);   
+               }
+
+               if (!empty($_GET['id']))
+               {
+                  $_BLOC_WHERE      = $_BLOC_WHERE . "`card_set_id` = :card_set_id AND";
+                  $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":card_set_id"        => addslashes($_GET['id'])]);
+               }
+
+               /*if (!empty($_GET['filters']))
                {
                   if (!isJson($_GET['filters']))
                   {
@@ -87,24 +101,12 @@
                         }
                      }
                   }
-               }
+               }*/
 
             // Création requête SQL
                $_BLOC_SELECT =
                "
-                  " . $_TABLE_LIST['dexocard'] . ".`card_set`.`card_set_id`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card_set`.`card_set_region`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card_set`.`card_set_serieid`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card_set`.`card_set_nameFR`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card_set`.`card_set_nameEN`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card_set`.`card_set_AbreviationFR`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card_set`.`card_set_AbreviationEN`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card_set`.`card_set_total`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card_set`.`card_set_printedTotal`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card_set`.`card_set_isedition1`,
-                  " . $_TABLE_LIST['dexocard'] . ".`card_set`.`card_set_releaseDate`,
-
-                  " . $_TABLE_LIST['dexocard'] . ".`card_set_images`.`card_set_images_symbol`
+                  *
                ";
 
             // Formatage des données envoyées
@@ -125,6 +127,16 @@
                      'id'                       => $thisCard['card_set_id'],
                      'regionid'                 => $thisCard['card_set_region'],
                      'serieid'                  => $thisCard['card_set_serieid'],
+                     'serie_name'               => array
+                     (
+                        'fr' => (empty($thisCard['card_serie_nameFR']) ? NULL : $thisCard['card_serie_nameFR']), 
+                        'en' => (empty($thisCard['card_serie_nameEN']) ? NULL : $thisCard['card_serie_nameEN']), 
+                     ),
+                     'serie_name_abrv'          => array
+                     (
+                        'fr' => (empty($thisCard['card_serie_AbreviationFR']) ? NULL : $thisCard['card_serie_AbreviationFR']), 
+                        'en' => (empty($thisCard['card_serie_AbreviationEN']) ? NULL : $thisCard['card_serie_AbreviationEN']), 
+                     ),
 
                      'name'                     => array
                      (
@@ -138,11 +150,26 @@
                         'en' => (empty($thisCard['card_set_AbreviationEN']) ? NULL : $thisCard['card_set_AbreviationEN']), 
                      ),
 
+                     'show'                     => $thisCard['card_set_show'],
+
                      'total_card'               => $thisCard['card_set_printedTotal'],
                      'total_card_w_hidden'      => $thisCard['card_set_total'],
                      'isedition1'               => $thisCard['card_set_isedition1'],
-                     'release_date'             => $thisCard['card_set_releaseDate'],
-                     'symbol'                   => $thisCard['card_set_images_symbol'],
+
+                     'release_date'             => array
+                     (
+                        'jp' => (empty($thisCard['card_set_releaseDatejp']) ? NULL : $thisCard['card_set_releaseDatejp']), 
+                        'fr' => (empty($thisCard['card_set_releaseDatefr']) ? NULL : $thisCard['card_set_releaseDatefr']), 
+                        'en' => (empty($thisCard['card_set_releaseDateen']) ? NULL : $thisCard['card_set_releaseDateen']), 
+                     ),
+
+                     'lastupdate_date'          => $thisCard['card_set_lastUpdate'],
+                     'symbol'                   => array
+                     (
+                        'jp' => (empty($thisCard['card_set_symboljp']) ? NULL : $thisCard['card_set_symboljp']), 
+                        'fr' => (empty($thisCard['card_set_symbolfr']) ? NULL : $thisCard['card_set_symbolfr']), 
+                        'en' => (empty($thisCard['card_set_symbolen']) ? NULL : $thisCard['card_set_symbolen']), 
+                     ),
                   ));
                }
   
@@ -165,6 +192,80 @@
 
             break;
          }
+
+         case 'POST':
+         case 'PUT':
+         {
+            // Check parameters
+               if (empty($_PARAM['id']))
+               {
+                  $_JSON_PRINT->fail("id must be specified");
+                  $_JSON_PRINT->print();                  
+               }
+
+            // MySQL Connect
+               $_SQL          = $_MYSQL->connect(array("dexocard"));
+         
+            // Search exist
+               $_SQL_ITEM  = $_SQL['dexocard']->query("SELECT * FROM `" . $_TABLE_LIST['dexocard'] . "`.`card_set` WHERE card_set_id = :set_id", [":set_id" => $_PARAM['id']])->fetch(PDO::FETCH_ASSOC);
+
+            // Upload files
+               $filenameUploaded = array();
+               $phash            = array();
+               $input_id         = 'symbol';
+
+               foreach (array('fr', 'en') as $lang)
+               {
+                  $filenameUploaded[$lang] = false;
+
+                  if (!empty($_FILES[$input_id . $lang]) || !empty($_FILES[$input_id . $lang]))
+                  {
+                     $dir_Target    = 'sets/';
+                     $file_Target   = str_pad($_PARAM['id'], 6, "0", STR_PAD_LEFT) . '-' . $lang . '-' . cleanTitleURL($_PARAM['namefr']);
+            
+                     $uploadResult = null;
+                     $uploadResult = uploadFile_Image($_FILES[$input_id . $lang], $_CONFIG['PRODUCTS']['DEXOCARD']['RES_ROOT'], $dir_Target, $file_Target, true);
+
+                     if (!$uploadResult['success'])
+                     {
+                        $_JSON_PRINT->fail("upload error : " . $uploadResult['raison']);
+                        $_JSON_PRINT->print();     
+                     }
+                     else
+                     {
+                        // traitement post upload
+                        $filenameUploaded[$lang] = $uploadResult['filename'];
+                     }
+                  }
+               }
+
+            // Enregistrement SQL
+               $update_sql = array();
+
+               $update_sql = array_merge($update_sql, ["card_set_nameFR"               => (!empty($_PARAM['namefr']) ? $_PARAM['namefr'] : NULL)]);
+               $update_sql = array_merge($update_sql, ["card_set_nameEN"               => (!empty($_PARAM['nameen']) ? $_PARAM['nameen'] : NULL)]);
+               $update_sql = array_merge($update_sql, ["card_set_AbreviationFR"        => (!empty($_PARAM['abrvfr']) ? $_PARAM['abrvfr'] : NULL)]);
+               $update_sql = array_merge($update_sql, ["card_set_AbreviationEN"        => (!empty($_PARAM['abrven']) ? $_PARAM['abrven'] : NULL)]);
+               $update_sql = array_merge($update_sql, ["card_set_show"                 => (!empty($_PARAM['show'])   ? 1 : 0)]);
+               if (!empty($filenameUploaded['fr']))      { $update_sql = array_merge($update_sql, ["card_set_symbolfr"           => $filenameUploaded['fr']]); }
+               if (!empty($filenameUploaded['en']))      { $update_sql = array_merge($update_sql, ["card_set_symbolen"           => $filenameUploaded['en']]); }
+
+               if ($update_sql)
+               {
+                  $results = $_SQL['dexocard']->update("card_set", $update_sql,
+                  [
+                     "card_set_id" => $_PARAM['id']
+                  ]);
+               }
+
+            // Print Results
+               $_JSON_PRINT->success(); 
+               $_JSON_PRINT->response();
+               $_JSON_PRINT->print();
+
+            break;
+         }
+   
       }
 
       /**
@@ -185,7 +286,8 @@
                " . $_BLOC_SELECT . "
 
                FROM " . $_TABLE_LIST['dexocard'] . ".`card_set`
-
+               
+               LEFT JOIN `card_serie` ON `card_set`.`card_set_serieid` = `card_serie`.`card_serie_id`
                LEFT JOIN " . $_TABLE_LIST['dexocard'] . ".`card_set_images`            ON " . $_TABLE_LIST['dexocard'] . ".`card_set_images`.`card_set_images_setid`            = `card_set_id`
 
                " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "

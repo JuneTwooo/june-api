@@ -16,6 +16,11 @@ class ComposerStaticInitbd4d93b7b8ed2b53c6b4a008e072719c
         array (
             'phpseclib3\\' => 11,
         ),
+        'c' => 
+        array (
+            'chillerlan\\Settings\\' => 20,
+            'chillerlan\\QRCode\\' => 18,
+        ),
         'P' => 
         array (
             'Psr\\SimpleCache\\' => 16,
@@ -47,6 +52,14 @@ class ComposerStaticInitbd4d93b7b8ed2b53c6b4a008e072719c
         'phpseclib3\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib',
+        ),
+        'chillerlan\\Settings\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/chillerlan/php-settings-container/src',
+        ),
+        'chillerlan\\QRCode\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/chillerlan/php-qrcode/src',
         ),
         'Psr\\SimpleCache\\' => 
         array (

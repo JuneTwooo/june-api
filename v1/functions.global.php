@@ -194,8 +194,20 @@
 
    function cleanTitleURL($title, $maxLength = 20)
    {
-      $title = str_replace(' ', '-', $title);
-      $title = str_replace('--', '-', $title);
-      return substr(preg_replace("/[^A-Za-z0-9 ]/", '-', $title), 0, 19);
+      $file_ext         = pathinfo($title, PATHINFO_EXTENSION); 
+      $file_name_str    = pathinfo($title, PATHINFO_FILENAME); 
+
+      $search           = array('À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Ç', 'È', 'É', 'Ê', 'Ë', 'Ì', 'Í', 'Î', 'Ï', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ù', 'Ú', 'Û', 'Ü', 'Ý', 'à', 'á', 'â', 'ã', 'ä', 'å', 'ç', 'è', 'é', 'ê', 'ë', 'ì', 'í', 'î', 'ï', 'ð', 'ò', 'ó', 'ô', 'õ', 'ö', 'ù', 'ú', 'û', 'ü', 'ý', 'ÿ');
+      $replace          = array('A', 'A', 'A', 'A', 'A', 'A', 'C', 'E', 'E', 'E', 'E', 'I', 'I', 'I', 'I', 'O', 'O', 'O', 'O', 'O', 'U', 'U', 'U', 'U', 'Y', 'a', 'a', 'a', 'a', 'a', 'a', 'c', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i', 'o', 'o', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u', 'y', 'y');
+      $file_name_str    = str_replace($search, $replace, $file_name_str);
+
+      $file_name_str    = str_replace(' ', '-', $file_name_str); 
+      $file_name_str    = preg_replace('/[^A-Za-z0-9\-\_]/', '', $file_name_str); 
+      $file_name_str    = preg_replace('/-+/', '-', $file_name_str); 
+
+      $clean_file_name  = $file_name_str; 
+         
+      return $clean_file_name; 
+
    }
 ?>

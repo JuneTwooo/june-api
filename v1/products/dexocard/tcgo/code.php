@@ -2,6 +2,8 @@
    // check Token
       $_TOKEN->checkAccess('dexocard', 'tcgo/code');
       
+      use Medoo\Medoo;
+
       switch (strtoupper($_METHOD))
       {
          case 'GET':
@@ -24,11 +26,11 @@
                }
 
             // MySQL Connexion
-               $_SQL    = $_MYSQL->connect(array("api"));
+               $_SQL    = $_MYSQL->connect(array("dexocard"));
 
-               // Affiche les codes
+            // Affiche les codes
                $response = array();
-               foreach ($_SQL['api']->query
+               foreach ($_SQL['dexocard']->query
                (
                   "
                      SELECT 
@@ -60,6 +62,14 @@
                      'tcg_code_dateadd'      => $itemSQL['tcg_code_dateadd'],
                      'tcg_code_datechecked'  => $itemSQL['tcg_code_datechecked'],
                   ));
+
+                  /*$results = $_SQL['dexocard']->update("tcg_code", 
+                  [
+                     "tcg_code_dateused" => Medoo::raw('NOW()'),
+                  ],
+                  [
+                     "tcg_code_code" => $itemSQL['tcg_code_code']
+                  ]);*/
                }
 
             // print
@@ -70,5 +80,4 @@
             break;
          }
       }
-      echo 'kk2';
 ?>
