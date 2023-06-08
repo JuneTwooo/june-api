@@ -19,7 +19,7 @@
                if (!empty($_GET['limit']))      { $_LIMIT   = intval($_GET['limit']);  }                                      else { $_LIMIT  = 10; }
                if (!empty($_GET['offset']))     { $_OFFSET  = intval($_GET['offset']); }                                      else { $_OFFSET = 0; }
                if (!empty($_GET['operand']))    { $_OPERAND = (strtolower($_GET['operand']) == 'or' ? "OR" : "AND"); }        else { $_OPERAND = "AND"; }
-            
+
             // Handles
             if ($_LIMIT > 3000 || 0 >= $_LIMIT)
             {
@@ -41,7 +41,7 @@
                      foreach ($item as $dataFilter)
                      {
                         $filter_Data      = $dataFilter->data;
-                        $filter_Operand   = $dataFilter->operand;
+                        $filter_Operand   = strtoupper($dataFilter->operand);
                         $filter_Value     = $dataFilter->value;
 
                         array_push($_FILTERS_ACTIVE, $filter_Data);
@@ -59,25 +59,26 @@
                            case 'serieid':
                            case 'setid':
                            case 'number':
+                           case 'numbermax':
                            case 'index':
                            case 'level':
                            case 'hp':
                            case 'supertype':
                            case 'namefr':
+                           {
+                              if ($filter_Data == 'namefr')    { $filter_Data = 'name_nameFR'; }
+                              if ($filter_Data == 'numbermax') { $filter_Data = 'set_printedTotal'; }
+
+                              $_BLOC_WHERE      = $_BLOC_WHERE . " `card_$filter_Data` $filter_Operand :$filter_Data" . "_$i $_OPERAND ";
+                              $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":" . $filter_Data . "_" . $i => ($filter_Operand == 'LIKE' ? '%' : '') . $filter_Value . ($filter_Operand == 'LIKE' ? '%' : '')]);
+
+                              break;
+                           }
                            case 'nameen':
                            case 'artist':
                            case 'rarity':
                            case 'rarity_simplified':
                            case 'rarity_index': 
-                           {
-                              if ($filter_Data == 'namefr') { $filter_Data = 'name_namefr'; }
-
-                              $_BLOC_WHERE      = $_BLOC_WHERE . " `card_$filter_Data` $filter_Operand :$filter_Data" . "_$i $_OPERAND ";
-                              $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":" . $filter_Data . "_" . $i => $filter_Value]);
-
-                              break;
-                           }
-
                            case 'pokemonid':
                            case 'typeid':
                            case 'ability':
@@ -182,15 +183,53 @@
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'fr',    `" . $_TABLE_LIST['dexocard'] . "`.`card_name`.`card_name_nameFR`,
-                        'en',    `" . $_TABLE_LIST['dexocard'] . "`.`card_name`.`card_name_nameEN`
+                        'fr',    `card_name`.`card_name_nameFR`,
+                        'en',    `card_name`.`card_name_nameEN`
                      )) 
                      FROM 
-                        `" . $_TABLE_LIST['dexocard'] . "`.`card_name`
+                        `card_name`
                      WHERE 
-                        `" . $_TABLE_LIST['dexocard'] . "`.`card_name`.`card_name_cardid` = `card_id` 
+                        `card_name`.`card_name_cardid` = `card_id` 
                      LIMIT 0,1
                   ) AS `card_name`,
+
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
+                     (
+                        'fr',    `card_serie`.`card_serie_nameFR`,
+                        'en',    `card_serie`.`card_serie_nameFR`
+                     )) 
+                     FROM 
+                        `card_serie`
+                     WHERE 
+                        `card_serie`.`card_serie_id` = `card_serieid` 
+                     LIMIT 0,1
+                  ) AS `card_serie`,
+
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
+                     (
+                        'fr',    `card_set`.`card_set_nameFR`,
+                        'en',    `card_set`.`card_set_nameEN`
+                     )) 
+                     FROM 
+                        `card_set`
+                     WHERE 
+                        `card_set`.`card_set_id` = `card_setid` 
+                     LIMIT 0,1
+                  ) AS `card_set`,
+
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
+                     (
+                        'symbol', `card_set_images`.`card_set_images_symbol`
+                     )) 
+                     FROM 
+                        `card_set_images`
+                     WHERE 
+                        `card_set_images`.`card_set_images_setid` = `card_setid` 
+                     LIMIT 0,1
+                  ) AS `card_set_images`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
@@ -347,7 +386,7 @@
                         'highEN',         " . $_TABLE_LIST['dexocard'] . ".`card_images`.`card_images_imagesHighEN`,
                         'smallFR',        " . $_TABLE_LIST['dexocard'] . ".`card_images`.`card_images_imagesSmallFR`,
                         'smallEN',        " . $_TABLE_LIST['dexocard'] . ".`card_images`.`card_images_imagesSmallEN`,
-                        'hasRelief ',     " . $_TABLE_LIST['dexocard'] . ".`card_holo`.`card_holo_HasRelief`,
+                        'hasRelief',      " . $_TABLE_LIST['dexocard'] . ".`card_holo`.`card_holo_HasRelief`,
                         'lastUpdate',     " . $_TABLE_LIST['dexocard'] . ".`card_images`.`card_images_LastUpdate`
                      ))
                      FROM
@@ -389,11 +428,28 @@
                   $_ASSOCS_VARS
                )->fetchAll(PDO::FETCH_ASSOC) as $thisCard)
                {
+                  $card_serie = json_decode($thisCard['card_serie']);
+                  $card_set   = json_decode($thisCard['card_set']);
+                  $card_name  = json_decode($thisCard['card_name']);
+
+                  $link_v1 = 'https://www.dexocard.com/cards/' . cleanURL(empty($card_set[0]->fr) ? $card_set[0]->en : $card_set[0]->fr) . '/' . cleanURL(empty($card_name[0]->fr) ? $card_name[0]->en : $card_name[0]->fr) . '/' . $thisCard['card_id'];
+
                   array_push($results_print, array
                   (
                      'id'                 => $thisCard['card_id'],
                      'serie_id'           => $thisCard['card_serieid'],
+                     'serie_name'         => array
+                     (
+                        'fr' => (empty($card_serie[0]->fr) ? NULL : $card_serie[0]->fr),
+                        'en' => (empty($card_serie[0]->en) ? NULL : $card_serie[0]->en),
+                     ),
                      'set_id'             => $thisCard['card_setid'],
+                     'set_name'           => array
+                     (
+                        'fr' => (empty($card_set[0]->fr) ? NULL : $card_set[0]->fr),
+                        'en' => (empty($card_set[0]->en) ? NULL : $card_set[0]->en),
+                     ),
+                     'set_symbol'         => (empty($thisCard['card_set_images']) ? NULL : json_decode($thisCard['card_set_images'], true)[0]['symbol']),
                      'number'             => $thisCard['card_number'],
                      'index'              => $thisCard['card_index'],
                      'level'              => $thisCard['card_level'],
@@ -407,7 +463,11 @@
 
                      'variant'            => (empty($thisCard['card_variant']) ? NULL : json_decode($thisCard['card_variant'], true)),
 
-                     'name'               => (empty($thisCard['card_name']) ? NULL : json_decode($thisCard['card_name'], true)),
+                     'name'               =>array
+                     (
+                        'fr' => (empty($card_name[0]->fr) ? NULL : $card_name[0]->fr),
+                        'en' => (empty($card_name[0]->en) ? NULL : $card_name[0]->en),
+                     ),
 
                      'artist'             => array
                      (
@@ -416,7 +476,7 @@
 
                      'pokemon'            => (empty($thisCard['card_nationalDexId']) ? NULL : json_decode($thisCard['card_nationalDexId'], true)),
 
-                     'flavor_text'        => (empty($thisCard['card_flavorText']) ? NULL : json_decode($thisCard['card_flavorText'], true)),
+                     'flavor_text'        => (empty($thisCard['card_flavorText']) ? NULL : json_decode($thisCard['card_flavorText'], true)[0]),
 
                      'abilities'          => array
                      (
@@ -430,12 +490,12 @@
                         'en' => (empty($thisCard['card_attacks_EN']) ? NULL : json_decode($thisCard['card_attacks_EN'], true)),
                      ),
 
-                     'propriety'          => (empty($thisCard['card_property']) ? NULL : json_decode($thisCard['card_property'], true)),
+                     'propriety'          => (empty($thisCard['card_property']) ? NULL : json_decode($thisCard['card_property'], true)[0]),
 
                      'retreatCost'        => $thisCard['card_convertedRetreatCost'],
-                     'weaknesses'         => (empty($thisCard['card_weaknesses']) ? NULL : json_decode($thisCard['card_weaknesses'], true)),
+                     'weaknesses'         => (empty($thisCard['card_weaknesses']) ? NULL : json_decode($thisCard['card_weaknesses'], true)[0]),
 
-                     'image'              => (empty($thisCard['card_image']) ? NULL : json_decode($thisCard['card_image'], true)),
+                     'image'              => (empty($thisCard['card_image']) ? NULL : json_decode($thisCard['card_image'], true)[0]),
 
                      'price_stats'        => array
                      (
@@ -447,6 +507,11 @@
                            ),
                         ),
                      ),
+
+                     'link'               => array
+                     (
+                        'v1'                => ($link_v1),
+                     )
                   ));
                }
 
@@ -765,13 +830,14 @@
 
                FROM " . $_TABLE_LIST['dexocard'] . ".`card`
 
-               LEFT JOIN " . $_TABLE_LIST['dexocard'] . ".`card_holo`   ON " . $_TABLE_LIST['dexocard'] . ".`card_holo`.`card_holo_cardid`            = `card_id`
+               LEFT JOIN `card_holo`      ON `card_holo`.`card_holo_cardid`            = `card_id`
+               LEFT JOIN `card_name`      ON `card_name`.`card_name_cardid`            = `card_id`
 
                " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
 
                ORDER BY
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_setid` ASC, 
-                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_index` ASC
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_setid` DESC, 
+                  " . $_TABLE_LIST['dexocard'] . ".`card`.`card_index` DESC
 
                " . ($_BLOC_LIMIT ? $_BLOC_LIMIT : '') . "
                ;

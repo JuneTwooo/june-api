@@ -20,9 +20,9 @@
                {
                   $_BLOC_WHERE      = $_BLOC_WHERE . " 
                   (
-                        `card_set_nameFR` LIKE :search_text_set_namefr OR 
-                        `card_set_nameEN` LIKE :search_text_set_nameen OR 
-                        `card_set_id`     LIKE :search_text_set_id
+                        `card_serie_nameFR` LIKE :search_text_set_namefr OR 
+                        `card_serie_nameEN` LIKE :search_text_set_nameen OR 
+                        `card_serie_id`     LIKE :search_text_set_id
                   ) AND";
                   $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_set_namefr"        => '%' . addslashes($_GET['search_text']) . '%']);   
                   $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_set_nameen"        => '%' . addslashes($_GET['search_text']) . '%']);   
@@ -31,8 +31,8 @@
 
                if (!empty($_GET['id']))
                {
-                  $_BLOC_WHERE      = $_BLOC_WHERE . "`card_set_id` = :card_set_id AND";
-                  $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":card_set_id"        => addslashes($_GET['id'])]);
+                  $_BLOC_WHERE      = $_BLOC_WHERE . "`card_serie_id` = :card_serie_id AND";
+                  $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":card_serie_id"        => addslashes($_GET['id'])]);
                }
 
             // Création requête SQL

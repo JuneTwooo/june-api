@@ -2,7 +2,11 @@
    // check Token
       $_TOKEN->checkAccess('dexocard', 'tcgo/code');
       
-      use Medoo\Medoo;
+      use chillerlan\QRCode\{QRCode, QROptions};
+      use chillerlan\QRCode\Common\EccLevel;
+      use chillerlan\QRCode\Data\QRMatrix;
+      use chillerlan\QRCode\Output\QROutputInterface;
+      use Medoo\Medoo;      
 
       switch (strtoupper($_METHOD))
       {
@@ -27,6 +31,22 @@
 
             // MySQL Connexion
                $_SQL    = $_MYSQL->connect(array("dexocard"));
+
+            // Qr Code opts 
+               $qrcodes_options = new QROptions(
+               [
+                  'version'             => 7,
+                  'imageBase64'         => true,
+                  'bgColor'             => [255, 255, 255],
+                  'imageTransparent'    => false,
+                  'drawCircularModules' => true,
+                  'drawLightModules'    => true,
+                  'circleRadius'        => 0.4,
+                  'keepAsSquare'        =>
+                  [
+                     QRMatrix::M_FINDER_DOT,
+                  ],
+               ]);
 
             // Affiche les codes
                $response = array();
@@ -61,15 +81,16 @@
                      'tcg_code_texte'        => $itemSQL['tcg_code_texte'],
                      'tcg_code_dateadd'      => $itemSQL['tcg_code_dateadd'],
                      'tcg_code_datechecked'  => $itemSQL['tcg_code_datechecked'],
+                     'tcg_code_qrcode'       => (new QRCode($qrcodes_options))->render($itemSQL['tcg_code_code']),
                   ));
 
-                  /*$results = $_SQL['dexocard']->update("tcg_code", 
+                  $results = $_SQL['dexocard']->update("tcg_code", 
                   [
                      "tcg_code_dateused" => Medoo::raw('NOW()'),
                   ],
                   [
                      "tcg_code_code" => $itemSQL['tcg_code_code']
-                  ]);*/
+                  ]);
                }
 
             // print
