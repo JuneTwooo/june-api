@@ -21,11 +21,11 @@
                if (!empty($_GET['operand']))    { $_OPERAND = (strtolower($_GET['operand']) == 'or' ? "OR" : "AND"); }        else { $_OPERAND = "AND"; }
 
             // Handles
-            if ($_LIMIT > 3000 || 0 >= $_LIMIT)
-            {
-               $_JSON_PRINT->fail("limit must set between 1 and 3000"); 
-               $_JSON_PRINT->print();
-            }
+               if ($_LIMIT > 3000 || 0 >= $_LIMIT)
+               {
+                  $_JSON_PRINT->fail("limit must set between 1 and 3000"); 
+                  $_JSON_PRINT->print();
+               }
             
             // Filtres
                if (!empty($_GET['filters']))
@@ -218,6 +218,20 @@
                         `card_set`.`card_set_id` = `card_setid` 
                      LIMIT 0,1
                   ) AS `card_set`,
+
+                  (
+                     SELECT JSON_ARRAYAGG(JSON_OBJECT
+                     (
+                        'id1',    `card_alt`.`card_alt_cardid1`,
+                        'id2',    `card_alt`.`card_alt_cardid2`,
+                        'id3',    `card_alt`.`card_alt_cardid3`
+                     )) 
+                     FROM 
+                        `card_alt`
+                     WHERE 
+                        `card_alt`.`card_alt_cardid` = `card_id` 
+                     LIMIT 0,1
+                  ) AS `card_alt`,
 
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
@@ -428,9 +442,14 @@
                   $_ASSOCS_VARS
                )->fetchAll(PDO::FETCH_ASSOC) as $thisCard)
                {
-                  $card_serie = json_decode($thisCard['card_serie']);
-                  $card_set   = json_decode($thisCard['card_set']);
-                  $card_name  = json_decode($thisCard['card_name']);
+                  $card_alt_arr  = array();
+                  $card_serie    = (!empty($thisCard['card_serie'])  ? json_decode($thisCard['card_serie']) : null);
+                  $card_set      = (!empty($thisCard['card_set'])    ? json_decode($thisCard['card_set'])   : null);
+                  $card_name     = (!empty($thisCard['card_name'])   ? json_decode($thisCard['card_name'])  : null);
+                  $card_alt      = (!empty($thisCard['card_alt'])    ? json_decode($thisCard['card_alt'])   : null);
+                  if (!empty($card_alt[0]->id1)) { array_push($card_alt_arr, $card_alt[0]->id1); }
+                  if (!empty($card_alt[0]->id2)) { array_push($card_alt_arr, $card_alt[0]->id2); }
+                  if (!empty($card_alt[0]->id3)) { array_push($card_alt_arr, $card_alt[0]->id3); }
 
                   $link_v1 = 'https://www.dexocard.com/cards/' . cleanURL(empty($card_set[0]->fr) ? $card_set[0]->en : $card_set[0]->fr) . '/' . cleanURL(empty($card_name[0]->fr) ? $card_name[0]->en : $card_name[0]->fr) . '/' . $thisCard['card_id'];
 
@@ -497,6 +516,13 @@
 
                      'image'              => (empty($thisCard['card_image']) ? NULL : json_decode($thisCard['card_image'], true)[0]),
 
+                     'alternative'        => $card_alt_arr,
+
+                     'link'               => array
+                     (
+                        'v1'                 => ($link_v1),
+                     ),
+
                      'price_stats'        => array
                      (
                         'ebay'               => array
@@ -507,11 +533,6 @@
                            ),
                         ),
                      ),
-
-                     'link'               => array
-                     (
-                        'v1'                => ($link_v1),
-                     )
                   ));
                }
 
@@ -575,19 +596,6 @@
             // MySQL Connect
                $_SQL          = $_MYSQL->connect(array("dexocard"));
          
-            // Get New ID
-               if (strtoupper($_METHOD) == 'POST')
-               {
-                  $_SQL['dexocard']->insert("card", []);
-                  $_PARAM['id'] = $_SQL['dexocard']->id();
-
-                  // ajouter aussi les enregistrements vierges pour ces table :
-                  // card_name
-                  // card_images
-                  // card_propriety
-
-                  // sinon ça fonctionnera pas
-               }
          
             // Search exist
                $_SQL_PRODUCT  = $_SQL['dexocard']->query(
@@ -601,12 +609,17 @@
                      card_id = :card_id
                ", [":card_id" => $_PARAM['id']])->fetch(PDO::FETCH_ASSOC);
 
-            // Recherche si le produit existe
                if (empty($_SQL_PRODUCT['card_id']))
                {
                   $_JSON_PRINT->fail("id not found");
                   $_JSON_PRINT->print();                                   
                }
+
+            // Create some tables
+               $_SQL['dexocard']->query("INSERT IGNORE INTO `card`            (`card_id`, card_number, card_index, card_serieid, card_setid)       VALUES(:id, '', 0, 0, '');", [":id" => $_PARAM['id']]);
+               $_SQL['dexocard']->query("INSERT IGNORE INTO `card_name`       (`card_name_cardid`)                                                 VALUES(:id);", [":id" => $_PARAM['id']]);
+               $_SQL['dexocard']->query("INSERT IGNORE INTO `card_images`     (`card_images_cardid`)                                               VALUES(:id);", [":id" => $_PARAM['id']]);
+               $_SQL['dexocard']->query("INSERT IGNORE INTO `card_propriety`  (`card_propriety_cardid`)                                            VALUES(:id);", [":id" => $_PARAM['id']]);
 
             // Upload Image
                // à faire
@@ -742,6 +755,7 @@
                      }
                   }
 
+                  if (!empty($_PARAM['number']))            { $update_sql = array_merge($update_sql, ["card_number"              => $_PARAM['number']]); }
                   if (!empty($_PARAM['artist']))            { $update_sql = array_merge($update_sql, ["card_artist"              => $_PARAM['artist']]); }
                   if (!empty($_PARAM['supertype']))         { $update_sql = array_merge($update_sql, ["card_supertype"           => $_PARAM['supertype']]); }
                   if (!empty($_PARAM['rarete']))            { $update_sql = array_merge($update_sql, ["card_rarity"              => $_PARAM['rarete']]); }
@@ -758,6 +772,22 @@
                      $results = $_SQL['dexocard']->update("card", $update_sql,
                      [
                         "card_id" => $_PARAM['id']
+                     ]);
+                  }
+
+               // `card_alt`
+                  $update_sql = array();
+
+                  if (!empty(json_decode($_PARAM['alts'], true)[0]))              { $update_sql = array_merge($update_sql, ["card_alt_cardid1"               => json_decode($_PARAM['alts'], true)[0]]); }
+                  if (!empty(json_decode($_PARAM['alts'], true)[1]))              { $update_sql = array_merge($update_sql, ["card_alt_cardid2"               => json_decode($_PARAM['alts'], true)[1]]); }
+                  if (!empty(json_decode($_PARAM['alts'], true)[2]))              { $update_sql = array_merge($update_sql, ["card_alt_cardid3"               => json_decode($_PARAM['alts'], true)[2]]); }
+
+                  if ($update_sql)
+                  {
+                     $_SQL['dexocard']->query("INSERT IGNORE INTO `card_alt`        (`card_alt_cardid`)                                                  VALUES(:id);", [":id" => $_PARAM['id']]);
+                     $results = $_SQL['dexocard']->update("card_alt", $update_sql,
+                     [
+                        "card_alt_cardid" => $_PARAM['id']
                      ]);
                   }
 

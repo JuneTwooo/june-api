@@ -13,7 +13,8 @@
          case 'GET':
          {
             // Nombre de code à afficher
-               $_NB     = (empty($_GET['length']) ? 1 : intval($_GET['length']));
+               $_NB     = (empty($_GET['length'])  ? 1 : intval($_GET['length']));
+               $_RAND   = (empty($_GET['rand'])    ? 1 : 0);
 
             // Nombre de code maximum à afficher
                if ($_NB > 10)
@@ -36,6 +37,7 @@
                $qrcodes_options = new QROptions(
                [
                   'version'             => 7,
+                  'scale'               => 3,
                   'imageBase64'         => true,
                   'bgColor'             => [255, 255, 255],
                   'imageTransparent'    => false,
@@ -63,6 +65,7 @@
                         " . $_TABLE_LIST['dexocard'] . ".`tcg_code`
                      WHERE
                         " . $_TABLE_LIST['dexocard'] . ".`tcg_code`.`tcg_code_dateused` IS NULL
+                     " . ($_RAND ? "ORDER BY RAND()" : "") . "
                      LIMIT 0, :nb;
                   ", 
                   [":nb" => $_NB]
