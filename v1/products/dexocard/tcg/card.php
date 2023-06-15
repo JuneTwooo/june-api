@@ -209,8 +209,9 @@
                   (
                      SELECT JSON_ARRAYAGG(JSON_OBJECT
                      (
-                        'fr',    `card_set`.`card_set_nameFR`,
-                        'en',    `card_set`.`card_set_nameEN`
+                        'fr',                      `card_set`.`card_set_nameFR`,
+                        'en',                      `card_set`.`card_set_nameEN`,
+                        'printedTotal',            `card_set`.`card_set_printedTotal`
                      )) 
                      FROM 
                         `card_set`
@@ -447,6 +448,7 @@
                   $card_set      = (!empty($thisCard['card_set'])    ? json_decode($thisCard['card_set'])   : null);
                   $card_name     = (!empty($thisCard['card_name'])   ? json_decode($thisCard['card_name'])  : null);
                   $card_alt      = (!empty($thisCard['card_alt'])    ? json_decode($thisCard['card_alt'])   : null);
+
                   if (!empty($card_alt[0]->id1)) { array_push($card_alt_arr, $card_alt[0]->id1); }
                   if (!empty($card_alt[0]->id2)) { array_push($card_alt_arr, $card_alt[0]->id2); }
                   if (!empty($card_alt[0]->id3)) { array_push($card_alt_arr, $card_alt[0]->id3); }
@@ -562,6 +564,8 @@
          case 'POST':
          case 'PUT':
          {
+            $new_image = false;
+
             // Check parameters
                if (empty($_PARAM['id']))
                {
@@ -596,37 +600,53 @@
             // MySQL Connect
                $_SQL          = $_MYSQL->connect(array("dexocard"));
          
-         
-            // Search exist
-               $_SQL_PRODUCT  = $_SQL['dexocard']->query(
-               "
-                  SELECT
-                     *
-                  FROM 
-                     `tcg`.`card`
-                  LEFT JOIN `tcg`.`card_images` ON `card_images_cardid` = `card`.`card_id`
-                  WHERE
-                     card_id = :card_id
-               ", [":card_id" => $_PARAM['id']])->fetch(PDO::FETCH_ASSOC);
-
-               if (empty($_SQL_PRODUCT['card_id']))
-               {
-                  $_JSON_PRINT->fail("id not found");
-                  $_JSON_PRINT->print();                                   
-               }
-
             // Create some tables
                $_SQL['dexocard']->query("INSERT IGNORE INTO `card`            (`card_id`, card_number, card_index, card_serieid, card_setid)       VALUES(:id, '', 0, 0, '');", [":id" => $_PARAM['id']]);
                $_SQL['dexocard']->query("INSERT IGNORE INTO `card_name`       (`card_name_cardid`)                                                 VALUES(:id);", [":id" => $_PARAM['id']]);
                $_SQL['dexocard']->query("INSERT IGNORE INTO `card_images`     (`card_images_cardid`)                                               VALUES(:id);", [":id" => $_PARAM['id']]);
                $_SQL['dexocard']->query("INSERT IGNORE INTO `card_propriety`  (`card_propriety_cardid`)                                            VALUES(:id);", [":id" => $_PARAM['id']]);
 
+            // Search exist
+               $_SQL_PRODUCT  = $_SQL['dexocard']->query(
+                  "
+                     SELECT
+                        *
+                     FROM 
+                        `tcg`.`card`
+                     LEFT JOIN `tcg`.`card_images` ON `card_images_cardid` = `card`.`card_id`
+                     WHERE
+                        card_id = :card_id
+                  ", [":card_id" => $_PARAM['id']])->fetch(PDO::FETCH_ASSOC);
+   
+                  if (empty($_SQL_PRODUCT['card_id']))
+                  {
+                     $_JSON_PRINT->fail("id not found");
+                     $_JSON_PRINT->print();                                   
+                  }
+
             // Upload Image
-               // à faire
+               if (!empty($_FILES['card-image']))
+               {
+                  //print_r($_FILES['card-image']);
+                  $dir_Target    = 'v1/tmp/';
+                  $file_Target   = 'card-' . rand(111111, 9999999999);
+
+                  $uploadResult = null;
+                  $uploadResult = uploadFile_Image($_FILES['card-image'], $_CONFIG['ROOT'], $dir_Target, $file_Target, true);
+
+                  if (!$uploadResult['success'])
+                  {
+                     $_JSON_PRINT->fail("upload error : " . $uploadResult['raison']);
+                     $_JSON_PRINT->print();     
+                  }
+                  else
+                  {
+                     $new_image = convert_image_card($_PARAM, file_get_contents($_CONFIG['ROOT'] . $dir_Target . $file_Target . '.webp'));
+                  }
+               }
 
             // Download Image
-               $new_image = false;
-               if (!empty($_PARAM['image']))
+               if (!$new_image && !empty($_PARAM['image']))
                {
                   if 
                   (
@@ -646,7 +666,7 @@
 
                      $results = $_SQL['dexocard']->update("card_images", 
                      [
-                        "card_images_imagesHigh"   . strtoupper($_PARAM['lang'])    => ('img/cards/' . $_PARAM['setid'] . '/' . $_PARAM['lang'] . '_high_' . md5($_PARAM['id']) . '.webp'),
+                        "card_images_imagesHigh"   . strtoupper($_PARAM['lang'])    => ('img/cards/' . $_PARAM['setid'] . '/' . $_PARAM['lang'] . '_high_'  . md5($_PARAM['id']) . '.webp'),
                         "card_images_imagesSmall"  . strtoupper($_PARAM['lang'])    => ('img/cards/' . $_PARAM['setid'] . '/' . $_PARAM['lang'] . '_small_' . md5($_PARAM['id']) . '.webp'),
                         "card_images_LastUpdate"                                    => date('Y-m-d H:m:s', time()),
                      ],
@@ -673,6 +693,12 @@
                   }
 
                // Talents
+                  if (!empty($_PARAM['ability']))
+                  {
+
+                  }
+
+               // Talents & Attaques en mode texte (généralement importé depuis pokemon.com)
                   if (!empty($_PARAM['text']))
                   {
                      // remove olds abilities and attacks
@@ -778,9 +804,9 @@
                // `card_alt`
                   $update_sql = array();
 
-                  if (!empty(json_decode($_PARAM['alts'], true)[0]))              { $update_sql = array_merge($update_sql, ["card_alt_cardid1"               => json_decode($_PARAM['alts'], true)[0]]); }
-                  if (!empty(json_decode($_PARAM['alts'], true)[1]))              { $update_sql = array_merge($update_sql, ["card_alt_cardid2"               => json_decode($_PARAM['alts'], true)[1]]); }
-                  if (!empty(json_decode($_PARAM['alts'], true)[2]))              { $update_sql = array_merge($update_sql, ["card_alt_cardid3"               => json_decode($_PARAM['alts'], true)[2]]); }
+                  if (!empty($_PARAM['alts']))              { $update_sql = array_merge($update_sql, ["card_alt_cardid1"               => json_decode($_PARAM['alts'], true)[0]]); }
+                  if (!empty($_PARAM['alts']))              { $update_sql = array_merge($update_sql, ["card_alt_cardid2"               => json_decode($_PARAM['alts'], true)[1]]); }
+                  if (!empty($_PARAM['alts']))              { $update_sql = array_merge($update_sql, ["card_alt_cardid3"               => json_decode($_PARAM['alts'], true)[2]]); }
 
                   if ($update_sql)
                   {
@@ -792,26 +818,32 @@
                   }
 
                // Card Energy Type
-                  if (!empty($_PARAM['type']))
+                  if (!empty($_PARAM['type1']))
                   {
-                     if (!empty($_PARAM['type']))
-                     {
-                        $_SQL['dexocard']->delete("card_types",
+                     $_SQL['dexocard']->delete("card_types",
+                     [
+                        "AND" =>
                         [
-                           "AND" =>
-                           [
-                              "card_types_cardid"     => strtoupper($_PARAM['id'])
-                           ]
-                        ]);
+                           "card_types_cardid"     => strtoupper($_PARAM['id'])
+                        ]
+                     ]);
 
-                        if ($_PARAM['type'])
-                        {
-                           $_SQL['dexocard']->insert("card_types",
-                           [
-                              "card_types_cardid"                 => $_PARAM['id'],
-                              "card_types_typeid"                 => $_PARAM['type'],
-                           ]);
-                        }
+                     if ($_PARAM['type1'])
+                     {
+                        $_SQL['dexocard']->insert("card_types",
+                        [
+                           "card_types_cardid"                 => $_PARAM['id'],
+                           "card_types_typeid"                 => $_PARAM['type1'],
+                        ]);
+                     }
+
+                     if ($_PARAM['type2'])
+                     {
+                        $_SQL['dexocard']->insert("card_types",
+                        [
+                           "card_types_cardid"                 => $_PARAM['id'],
+                           "card_types_typeid"                 => $_PARAM['type2'],
+                        ]);
                      }
                   }
 

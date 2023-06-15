@@ -15,10 +15,12 @@
             $_FILTERS_ACTIVE  = array();
 				$_BLOC_WHERE      = '';
 				$_ASSOCS_VARS     = array();
-
+            $_ORDER           = "date_firstrelease DESC, categorie_id ASC";
+            
             // Check parameters
-               if (empty($_GET['offset'])) 		{ $_OFFSET = 0; }   else { $_OFFSET = intval($_GET['offset']); }
-               if (empty($_GET['limit']))  		{ $_LIMIT  = 10; }  else { $_LIMIT  = intval($_GET['limit']); }
+               if (empty($_GET['offset'])) 		   { $_OFFSET     = 0; }       else { $_OFFSET     = intval($_GET['offset']); }
+               if (empty($_GET['limit']))  		   { $_LIMIT      = 10; }      else { $_LIMIT      = intval($_GET['limit']); }
+               if (!empty($_GET['order']))  		                                    { $_ORDER      = $_GET['order']; }
                
                if (empty($_GET['id']))          { $_GET['id'] = null; } 
                else
@@ -30,13 +32,15 @@
                {
                   $_BLOC_WHERE      = $_BLOC_WHERE . " 
                   (
-                        `store_categorie_namefr`   LIKE :search_text_categorie_namefr OR 
-                        `card_set_nameFR`          LIKE :search_text_set_namefr OR 
-                        `store_product_namefr`     LIKE :search_text_product_namefr
+                        `store_categorie_namefr`   LIKE :search_text_categorie_namefr  OR 
+                        `store_product_namefr`     LIKE :search_text_product_namefr    OR
+                        `store_product_id`         LIKE :search_text_storeid           OR
+                        `card_set_nameFR`          LIKE :search_text_set_namefr
                   ) AND";
                   $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_categorie_namefr"  => '%' . $_GET['search_text'] . '%']);   
                   $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_set_namefr"        => '%' . $_GET['search_text'] . '%']);   
                   $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_product_namefr"    => '%' . $_GET['search_text'] . '%']);   
+                  $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":search_text_storeid"           => '%' . $_GET['search_text'] . '%']);   
                }
 
             // MySQL Connect
@@ -53,7 +57,7 @@
                $results_print = array();
                foreach ($_SQL['dexocard']->query
                (
-						getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT), 
+						getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_ORDER, "LIMIT " . $_OFFSET . ", " . $_LIMIT), 
 						$_ASSOCS_VARS
                )->fetchAll(PDO::FETCH_ASSOC) as $itemSQL)
                {
@@ -123,7 +127,7 @@
 					$_JSON_PRINT->addDataBefore('results_filters_count',  $results_unfiltered); 
 					
 					// debug
-					//$_SQL['api']->debug()->query(getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS);
+					//$_SQL['api']->debug()->query(getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_ORDER, "LIMIT " . $_OFFSET . ", " . $_LIMIT),$_ASSOCS_VARS);
 
 					$_JSON_PRINT->success(); 
 					$_JSON_PRINT->response($results_print); 
@@ -268,10 +272,50 @@
          }
       }
 
-      function getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
+      function getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_ORDER = NULL, $_BLOC_LIMIT = NULL)
       {
          global $_TABLE_LIST;
    
+         // order
+            $order_sql = '';
+            if ($_ORDER)
+            {
+               $_ORDER = explode(', ', $_ORDER);
+               foreach ($_ORDER as $itemOrder)
+               {
+                  $exploded_order = explode(' ', $itemOrder);
+                  $column  = trim($exploded_order[0]);
+                  $dir     = (strtoupper(trim($exploded_order[1])) == 'ASC' ? 'ASC' : 'DESC');
+
+                  switch ($column)
+                  {
+                     case 'id'                     : { $order_sql = $order_sql . "`store_product_id` "                     . $dir . ", ";        break; }
+                     case 'name'                   :
+                     { 
+                        $order_sql = $order_sql . "`store_product_namefr` "                     . $dir . ", ";
+                        $order_sql = $order_sql . "`store_product_nameen` "                     . $dir . ", ";
+                        break;
+                     }
+                     case 'categorie_name'                   :
+                     { 
+                        $order_sql = $order_sql . "`store_categorie_namefr` "                   . $dir . ", ";
+                        $order_sql = $order_sql . "`store_categorie_nameen` "                   . $dir . ", ";
+                        break;
+                     }
+                     case 'set_name'                         :
+                     { 
+                        $order_sql = $order_sql . "`card_set_nameFR` "                   . $dir . ", ";
+                        $order_sql = $order_sql . "`card_set_nameEN` "                   . $dir . ", ";
+                        break;
+                     }
+                     case 'date_firstrelease'      : { $order_sql = $order_sql . "`store_product_date_firstrealease` "     . $dir . ", ";        break; }
+                     case 'categorie_id'            : { $order_sql = $order_sql . "`store_product_categorieid` "            . $dir . ", ";        break; }
+                  }
+               }
+               $order_sql = substr($order_sql, 0, strlen($order_sql) - 2);
+            }
+
+
          // Assemblage requête SQL
             return "
                SELECT 
@@ -284,9 +328,7 @@
       
                " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
 
-               ORDER BY 
-                  `store_product_date_firstrealease` DESC,
-                  `store_product_categorieid` ASC
+               " . ($order_sql ? "ORDER BY $order_sql" : '') . "
    
                " . ($_BLOC_LIMIT ? $_BLOC_LIMIT : '') . "
                ;

@@ -14,7 +14,7 @@
                if (!empty($_GET['limit']))      { $_LIMIT      = intval($_GET['limit']);  }                                   else { $_LIMIT  = 10; }
                if (!empty($_GET['offset']))     { $_OFFSET     = intval($_GET['offset']); }                                   else { $_OFFSET = 0; }
                if (!empty($_GET['operand']))    { $_OPERAND    = (strtolower($_GET['operand']) == 'or' ? "OR " : "AND"); }    else { $_OPERAND = "AND"; }
-               if (!empty($_GET['order']))      { $_ORDER      = $_GET['order']; }                                            else { $_ORDER = "AND"; }
+               if (!empty($_GET['order']))      { $_ORDER      = $_GET['order']; }                                            else { $_ORDER = ""; }
             
             // Filtres
                if (!empty($_GET['search_text']))
@@ -166,9 +166,10 @@
                      'lastupdate_date'          => $thisCard['card_set_lastUpdate'],
                      'symbol'                   => array
                      (
-                        'jp' => (empty($thisCard['card_set_symboljp']) ? NULL : $thisCard['card_set_symboljp']), 
-                        'fr' => (empty($thisCard['card_set_symbolfr']) ? NULL : $thisCard['card_set_symbolfr']), 
-                        'en' => (empty($thisCard['card_set_symbolen']) ? NULL : $thisCard['card_set_symbolen']), 
+                        'jp'  => (empty($thisCard['card_set_symboljp'])       ? NULL : $thisCard['card_set_symboljp']), 
+                        'fr'  => (empty($thisCard['card_set_symbolfr'])       ? NULL : $thisCard['card_set_symbolfr']), 
+                        'en'  => (empty($thisCard['card_set_symbolen'])       ? NULL : $thisCard['card_set_symbolen']), 
+                        'old' => (empty($thisCard['card_set_images_symbol'])  ? NULL : $thisCard['card_set_images_symbol']), 
                      ),
                   ));
                }
@@ -293,7 +294,8 @@
                " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
 
                ORDER BY 
-                  " . $_TABLE_LIST['dexocard'] . ".`card_set`.`card_set_id` ASC
+                  `card_set`.`card_set_serieid` ASC,
+                  `card_set`.`card_set_id` ASC
 
                " . ($_BLOC_LIMIT ? $_BLOC_LIMIT : '') . "
                ;
