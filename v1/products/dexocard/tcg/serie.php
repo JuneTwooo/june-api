@@ -6,15 +6,20 @@
       {
          case 'GET':
          {
+            /*
+               https://api.dexocard.com/v1/tcg/serie?limit=99&order=order-asc
+            */
+
             $_FILTERS_ACTIVE  = array();
             $_BLOC_WHERE      = '';
             $_ASSOCS_VARS     = array();
+            $_ORDER           = "id-ASC";
 
             // Defaults vars
                if (!empty($_GET['limit']))      { $_LIMIT      = intval($_GET['limit']);  }                                   else { $_LIMIT  = 10; }
                if (!empty($_GET['offset']))     { $_OFFSET     = intval($_GET['offset']); }                                   else { $_OFFSET = 0; }
-               if (!empty($_GET['order']))      { $_ORDER      = $_GET['order']; }                                            else { $_ORDER = "AND"; }
-            
+               if (!empty($_GET['order']))  		{ $_ORDER      = $_GET['order']; }
+
             // Filtres
                if (!empty($_GET['search_text']))
                {
@@ -50,7 +55,7 @@
                // Query
                foreach ($_SQL['dexocard']->query
                (
-                  getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT), 
+                  getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, "LIMIT " . $_OFFSET . ", " . $_LIMIT, $_ORDER), 
                   $_ASSOCS_VARS
                )->fetchAll(PDO::FETCH_ASSOC) as $thisCard)
                {
@@ -97,11 +102,48 @@
       * @ignore
 
       */
-      function getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL)
+      function getQuery_Sets($_FILTERS_ACTIVE, $_BLOC_SELECT, $_BLOC_WHERE, $_BLOC_LIMIT = NULL, $_ORDER = NULL)
       {
          global $_TABLE_LIST;
 
-         //$_BLOC_WHERE      = $_BLOC_WHERE . " `card_set_show` = 1 AND ";
+         // order
+            $order_sql = '';
+            if ($_ORDER)
+            {
+               $_ORDER = explode(',', $_ORDER);
+               foreach ($_ORDER as $itemOrder)
+               {
+                  $exploded_order = explode('-', $itemOrder);
+                  $column  = trim($exploded_order[0]);
+                  $dir     = (strtoupper(trim($exploded_order[1])) == 'ASC' ? 'ASC' : 'DESC');
+
+                  switch ($column)
+                  {
+                     case 'name'                         :
+                     { 
+                        $order_sql = $order_sql .     "`card_serie_nameFR` "                   . $dir . ", ";
+                        $order_sql = $order_sql .     "`card_serie_nameEN` "                   . $dir . ", ";
+                        break;
+                     }
+
+                     case 'id'                           :
+                     { 
+                        $order_sql = $order_sql .     "`card_serie_id` "                   . $dir . ", ";
+                        break;
+                     }
+
+                     case 'order'                        :
+                     { 
+                        $order_sql = $order_sql . "`card_serie_order` "                   . $dir . ", ";
+                        break;
+                     }
+
+
+                     case 'date_release'      : { $order_sql = $order_sql . "`card_set_releaseDatefr` "     . $dir . ", ";        break; }
+                  }
+               }
+               $order_sql = substr($order_sql, 0, strlen($order_sql) - 2);
+            }
 
          // Assemblage requête SQL
             return "
@@ -113,8 +155,7 @@
                
                " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
 
-               ORDER BY 
-                  " . $_TABLE_LIST['dexocard'] . ".`card_serie`.`card_serie_id` ASC
+               " . ($order_sql ? "ORDER BY $order_sql" : '') . "
 
                " . ($_BLOC_LIMIT ? $_BLOC_LIMIT : '') . "
                ;

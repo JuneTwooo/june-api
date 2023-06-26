@@ -64,10 +64,12 @@
                            case 'level':
                            case 'hp':
                            case 'supertype':
+                           case 'edition1':
                            case 'namefr':
                            {
                               if ($filter_Data == 'namefr')    { $filter_Data = 'name_nameFR'; }
                               if ($filter_Data == 'numbermax') { $filter_Data = 'set_printedTotal'; }
+                              if ($filter_Data == 'edition1')  { $filter_Data = 'set_isedition1'; }
 
                               $_BLOC_WHERE      = $_BLOC_WHERE . " `card_$filter_Data` $filter_Operand :$filter_Data" . "_$i $_OPERAND ";
                               $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":" . $filter_Data . "_" . $i => ($filter_Operand == 'LIKE' ? '%' : '') . $filter_Value . ($filter_Operand == 'LIKE' ? '%' : '')]);
@@ -211,7 +213,8 @@
                      (
                         'fr',                      `card_set`.`card_set_nameFR`,
                         'en',                      `card_set`.`card_set_nameEN`,
-                        'printedTotal',            `card_set`.`card_set_printedTotal`
+                        'printedTotal',            `card_set`.`card_set_printedTotal`,
+                        'is_ed1',                  `card_set`.`card_set_isedition1`
                      )) 
                      FROM 
                         `card_set`
@@ -431,7 +434,22 @@
                            " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_CardId` = `card_id` AND 
                            " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Sold` = 1 AND
                            DATE_ADD(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_DateLastSeen`, INTERVAL 28 DAY) >= NOW()
-                  ) AS `price_stats_sold_ebay_28`
+                  ) AS `price_stats_sold_ebay_28`,
+
+                  (
+                     SELECT (JSON_OBJECT
+                     (
+                        'count', count(*),
+                        'avg', CAST(avg(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Price`) AS DECIMAL(10,2)), 
+                        'min', CAST(min(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Price`) AS DECIMAL(10,2)), 
+                        'max', CAST(max(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Price`) AS DECIMAL(10,2)))) 
+
+                        FROM 
+                           " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`
+                        WHERE
+                           " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_CardId` = `card_id` AND 
+                           " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Sold` = 1
+                  ) AS `price_stats_sold_ebay_all_times`                 
                ";
 
             // Formatage des données envoyées
@@ -448,6 +466,9 @@
                   $card_set      = (!empty($thisCard['card_set'])    ? json_decode($thisCard['card_set'])   : null);
                   $card_name     = (!empty($thisCard['card_name'])   ? json_decode($thisCard['card_name'])  : null);
                   $card_alt      = (!empty($thisCard['card_alt'])    ? json_decode($thisCard['card_alt'])   : null);
+
+                  /* other filters */
+                  /* end other filters */
 
                   if (!empty($card_alt[0]->id1)) { array_push($card_alt_arr, $card_alt[0]->id1); }
                   if (!empty($card_alt[0]->id2)) { array_push($card_alt_arr, $card_alt[0]->id2); }
@@ -471,6 +492,7 @@
                         'en' => (empty($card_set[0]->en) ? NULL : $card_set[0]->en),
                      ),
                      'set_symbol'         => (empty($thisCard['card_set_images']) ? NULL : json_decode($thisCard['card_set_images'], true)[0]['symbol']),
+                     'ed1'                => $card_set[0]->is_ed1,
                      'number'             => $thisCard['card_number'],
                      'index'              => $thisCard['card_index'],
                      'level'              => $thisCard['card_level'],
@@ -531,7 +553,8 @@
                         (
                            'sold'               => array
                            (
-                              '28d' => (empty($thisCard['price_stats_sold_ebay_28']) ? NULL : json_decode($thisCard['price_stats_sold_ebay_28'], true)),
+                              '28d'       => (empty($thisCard['price_stats_sold_ebay_28'])         ? NULL : json_decode($thisCard['price_stats_sold_ebay_28'],          true)),
+                              'all_times' => (empty($thisCard['price_stats_sold_ebay_all_times'])  ? NULL : json_decode($thisCard['price_stats_sold_ebay_all_times'],   true)),
                            ),
                         ),
                      ),
@@ -892,8 +915,9 @@
 
                FROM " . $_TABLE_LIST['dexocard'] . ".`card`
 
-               LEFT JOIN `card_holo`      ON `card_holo`.`card_holo_cardid`            = `card_id`
-               LEFT JOIN `card_name`      ON `card_name`.`card_name_cardid`            = `card_id`
+               LEFT JOIN `card_holo`      ON `card_holo` .`card_holo_cardid`           = `card_id`
+               LEFT JOIN `card_name`      ON `card_name` .`card_name_cardid`           = `card_id`
+               LEFT JOIN `card_set`       ON `card_set`  .`card_set_id`                = `card_setid`
 
                " . ($_BLOC_WHERE ? "WHERE " . substr($_BLOC_WHERE, 0, strlen($_BLOC_WHERE) - 4) : '') . "
 

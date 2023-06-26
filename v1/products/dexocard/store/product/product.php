@@ -12,10 +12,14 @@
       {
          case 'GET':
          {
+            /*
+               https://api.dexocard.com/v1/store/product?order=categorie_name-desc
+            */
+
             $_FILTERS_ACTIVE  = array();
 				$_BLOC_WHERE      = '';
 				$_ASSOCS_VARS     = array();
-            $_ORDER           = "date_firstrelease DESC, categorie_id ASC";
+            $_ORDER           = "date_firstrelease-DESC,categorie_id-ASC";
             
             // Check parameters
                if (empty($_GET['offset'])) 		   { $_OFFSET     = 0; }       else { $_OFFSET     = intval($_GET['offset']); }
@@ -280,10 +284,10 @@
             $order_sql = '';
             if ($_ORDER)
             {
-               $_ORDER = explode(', ', $_ORDER);
+               $_ORDER = explode(',', $_ORDER);
                foreach ($_ORDER as $itemOrder)
                {
-                  $exploded_order = explode(' ', $itemOrder);
+                  $exploded_order = explode('-', $itemOrder);
                   $column  = trim($exploded_order[0]);
                   $dir     = (strtoupper(trim($exploded_order[1])) == 'ASC' ? 'ASC' : 'DESC');
 

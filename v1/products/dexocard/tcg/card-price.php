@@ -43,7 +43,7 @@
                      foreach ($item as $dataFilter)
                      {
                         $filter_Data      = $dataFilter->data;
-                        $filter_Operand   = $dataFilter->operand;
+                        $filter_Operand   = strtoupper($dataFilter->operand);
                         $filter_Value     = $dataFilter->value;
 
                         array_push($_FILTERS_ACTIVE, $filter_Data);
@@ -70,7 +70,7 @@
                            case 'rarity_index':
                            {
                               $_BLOC_WHERE      = $_BLOC_WHERE . " `card_$filter_Data` $filter_Operand :$filter_Data" . "_$i $_OPERAND ";
-                              $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":" . $filter_Data . "_" . $i => $filter_Value]);
+                              $_ASSOCS_VARS     = array_merge($_ASSOCS_VARS, [":" . $filter_Data . "_" . $i => ($filter_Operand == 'LIKE' ? '%' : '') . $filter_Value . ($filter_Operand == 'LIKE' ? '%' : '')]);
 
                               break;
                            }
