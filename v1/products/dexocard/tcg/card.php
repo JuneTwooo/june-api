@@ -448,8 +448,9 @@
                            " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`
                         WHERE
                            " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_CardId` = `card_id` AND 
-                           " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Sold` = 1
-                  ) AS `price_stats_sold_ebay_all_times`                 
+                           " . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_Sold` = 1 AND
+                           DATE_ADD(" . $_TABLE_LIST['dexocard'] . ".`card_price_ebay`.`card_prices_DateLastSeen`, INTERVAL 90 DAY) >= NOW()
+                  ) AS `price_stats_sold_ebay_90`
                ";
 
             // Formatage des données envoyées
@@ -554,7 +555,7 @@
                            'sold'               => array
                            (
                               '28d'       => (empty($thisCard['price_stats_sold_ebay_28'])         ? NULL : json_decode($thisCard['price_stats_sold_ebay_28'],          true)),
-                              'all_times' => (empty($thisCard['price_stats_sold_ebay_all_times'])  ? NULL : json_decode($thisCard['price_stats_sold_ebay_all_times'],   true)),
+                              '90d'       => (empty($thisCard['price_stats_sold_ebay_90'])         ? NULL : json_decode($thisCard['price_stats_sold_ebay_90'],          true)),
                            ),
                         ),
                      ),
